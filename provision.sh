@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 apt-get update
-apt-get install -y build-essential git postgresql-9.3 postgresql-server-dev-9.3 ipython
+apt-get install -y git postgresql-9.3 postgresql-server-dev-9.3 ipython python-pip python-dev #build-essential
 
 echo '# "local" is for Unix domain socket connections only
 local   all             all                                  trust
