@@ -1,14 +1,27 @@
-<html>
-  <head>
-    {% if title %}
-    <title>{{ title }} - OliDB</title>
-    {% else %}
-    <title>Welcome to OliDB</title>
-    {% endif %}
-  </head>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    {% block meta %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>
+    {% block head %}{% endblock %}
+    {% block css %}{% endblock %}
+    {% block js %}{% endblock %}
+</head>
+
   <body>
-    <div>Oli Database: <a href="/index">Home</a></div>
-    <hr>
-    {% block content %}{% endblock %}
+  <div class="navbar navbar-static-top">
+    <p>Navigation Bar will go here</p>
+  </div>
+
+  <div id="wrap">
+      <div class="container-fluid">
+          {% block content %}{% endblock %}
+      </div>
+  </div>
+
+
   </body>
 </html>
