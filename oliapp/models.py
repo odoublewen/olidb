@@ -1,5 +1,5 @@
 import datetime
-from oli import db
+from oliapp import db
 
 
 # class to hold gene_info file

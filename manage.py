@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from oli import app, db
+from oliapp import app, db
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
