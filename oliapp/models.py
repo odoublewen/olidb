@@ -53,6 +53,7 @@ class Target(db.Model):
     __tablename__ = 'target'
     id = db.Column(db.Integer, primary_key=True)
     accession_id = db.Column(db.Integer, db.ForeignKey('accession.id'))
+    taxonomy = db.Column(db.String(4), nullable=False)
     designs = db.relationship('Design', backref='target', lazy='dynamic')
     targetnamelong = db.Column(db.String(255), nullable=True)
     targetnamealts = db.Column(db.String(255), nullable=True)
@@ -80,6 +81,7 @@ class Design(db.Model):
     __tablename__ = 'design'
     id = db.Column(db.Integer, primary_key=True)
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'))
+    tmid = db.Column(db.Integer, nullable=False)
     designname = db.Column(db.String(255), nullable=False, unique=True)
     oligos = db.relationship('Oligo', backref='design', lazy='dynamic')
 
@@ -91,6 +93,7 @@ class Oligo(db.Model):
     __tablename__ = 'oligo'
     id = db.Column(db.Integer, primary_key=True)
     design_id = db.Column(db.Integer, db.ForeignKey('design.id'))
+    oligoid = db.Column(db.Integer, nullable=False)
     seq = db.Column(db.String(255), nullable=False)
     tubename = db.Column(db.String(255), nullable=False)
     probe = db.Column(db.String(255), nullable=False)
