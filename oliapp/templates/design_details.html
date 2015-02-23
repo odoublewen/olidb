@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Design details</h1>
+
+
+    <table class="table table-bordered table-condensed table-striped">
+    <tr><td>design name</td><td>{{ g.des.designname }}</td></tr>
+    <tr><td>TM ID</td><td>{{ g.des.tmid }}</td></tr>
+    <tr><td>designer</td><td>{{ g.des.designer }}</td></tr>
+    <tr><td>design date</td><td>TBD</td></tr>
+    </table>
+
+    <h2>Oligo details</h2>
+    <table class="table table-bordered table-condensed table-striped", width=1000>
+    <tr>
+        <th>tubename</th>
+        <th>oligo id</th>
+        <th>sequence</th>
+        <th>order date</th>
+    </tr>
+    {% for o in g.des.oligos %}
+    <tr>
+        <td>{{ o }}</td>
+        <td>{{ o.oligoid }}</td>
+        <td>{{ o.sequence }}</td>
+        <td>{% if o.orderdate.strftime %}{{ o.orderdate.strftime('%Y-%m-%d') }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

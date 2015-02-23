@@ -1,6 +1,8 @@
+import operator
 import datetime
 from oliapp import db
-
+from lib.postgres import to_query_term, make_weighted_document_column
+from sqlalchemy.sql import func, desc
 
 # class to hold gene_info file
 class Gene(db.Model):
@@ -60,12 +62,23 @@ experiment_design = db.Table(
 class Experiment(db.Model):
     __tablename__ = 'experiment'
     id = db.Column(db.Integer, primary_key=True)
-    setname = db.Column(db.String(255), nullable=False)
-    setdate = db.Column(db.DateTime, nullable=True)
+    name = db.Column(db.String(64), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    notes = db.Column(db.String(255), nullable=True)
+    folder = db.Column(db.String(16), nullable=True)
+    date = db.Column(db.DateTime, nullable=True)
     designs = db.relationship('Design', secondary=experiment_design, backref=db.backref('experiments', lazy='dynamic'))
 
     def __repr__(self):
         return '<Setname %r>' % self.setname
+
+    # TODO: add properties, etc
+    # @property
+    # def length(self):
+    #     return Experiment.designs()
+    #
+    # def __len__():
+    #     pass
 
 
 class Target(db.Model):
@@ -88,10 +101,55 @@ class Design(db.Model):
 
     tmid = db.Column(db.Integer, nullable=False)
     designname = db.Column(db.String(64), nullable=False, unique=True)
+    designdate = db.Column(db.DateTime, nullable=True)
     designer = db.Column(db.String(64), nullable=False)
+    location = db.Column(db.String(64), nullable=False)
+    is_public = db.Column(db.Boolean(), default=False)
+    is_obsolete = db.Column(db.Boolean(), default=False)
 
     def __repr__(self):
-        return '<Design name %r>' % self.name
+        # return '<Design name %r>' % self.designname
+        return self.designname
+
+    @classmethod
+    def by_id(cls, designid):
+        query = cls.query.get(designid)
+        return query
+
+    @classmethod
+    def search(cls, term):
+        local_session = cls.query.session
+        term = to_query_term(term)
+
+        search_subquery = local_session.query(cls.id.label('design_id'),
+                                              cls.designname.label('design_designname'),
+                                              make_weighted_document_column([
+                                                  (cls.designname, 'A'),
+                                                  (cls.designer, 'B'),
+                                                  (cls.location, 'B')
+                                              ]).label('document')).subquery()
+
+        search_query = local_session.query(cls.id,
+                                           cls.tmid,
+                                           cls.designname,
+                                           cls.designdate,
+                                           cls.designer,
+                                           cls.is_public,
+                                           cls.is_obsolete,
+                                           func.ts_rank(search_subquery.c.document,
+                                                        func.to_tsquery(term)))\
+                                    .join(search_subquery, cls.id == search_subquery.c.design_id)\
+                                    .filter(search_subquery.c.document.match(term))\
+                                    .order_by(desc(func.ts_rank(search_subquery.c.document,
+                                                                func.to_tsquery(term))))
+
+        return search_query.all()
+
+        # # support reassignment through lists
+        # results = [[rank, did, dname, ddate, designer, pub, obs] for
+        #            rank, did, dname, ddate, designer, pub, obs in search_query.all()]
+        #
+        # return sorted(results, key=operator.itemgetter(0))[::-1]
 
 
 class Oligo(db.Model):
@@ -108,6 +166,6 @@ class Oligo(db.Model):
     created = db.Column(db.DateTime, default=datetime.datetime.now)
 
     def __repr__(self):
-        return '<Tubename %r>' % self.tubename
+        return self.tubename
 
 
