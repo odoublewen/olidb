@@ -1,4 +1,3 @@
-import operator
 import datetime
 from oliapp import db
 from lib.postgres import to_query_term, make_weighted_document_column
@@ -118,13 +117,17 @@ class Design(db.Model):
 
     @classmethod
     def search(cls, term):
-        local_session = cls.query.session
         term = to_query_term(term)
 
+        local_session = cls.query.session
         search_subquery = local_session.query(cls.id.label('design_id'),
                                               cls.designname.label('design_designname'),
                                               make_weighted_document_column([
                                                   (cls.designname, 'A'),
+                                                  # (cls.oligos.seqeunce, 'A'),
+                                                  # (cls.genename, 'A'),
+                                                  # (Target.targetnamelong, 'A'),
+                                                  # (Target.targetnamealts, 'A'),
                                                   (cls.designer, 'B'),
                                                   (cls.location, 'B')
                                               ]).label('document')).subquery()
