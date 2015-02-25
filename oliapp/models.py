@@ -3,6 +3,7 @@ from oliapp import db
 from lib.postgres import to_query_term, make_weighted_document_column
 from sqlalchemy.sql import func, desc
 
+
 # class to hold gene_info file
 class Gene(db.Model):
     __tablename__ = 'gene'
@@ -91,6 +92,9 @@ class Target(db.Model):
     targetnamelong = db.Column(db.String(255), nullable=True)
     targetnamealts = db.Column(db.String(255), nullable=True)
 
+    def __repr__(self):
+        return '<%s>' % self.genename
+
 
 class Design(db.Model):
     __tablename__ = 'design'
@@ -107,52 +111,54 @@ class Design(db.Model):
     is_obsolete = db.Column(db.Boolean(), default=False)
 
     def __repr__(self):
-        # return '<Design name %r>' % self.designname
-        return self.designname
+        return '<%s>' % self.designname
 
     @classmethod
     def by_id(cls, designid):
         query = cls.query.get(designid)
         return query
 
-    @classmethod
-    def search(cls, term):
-        term = to_query_term(term)
 
-        local_session = cls.query.session
-        search_subquery = local_session.query(cls.id.label('design_id'),
-                                              cls.designname.label('design_designname'),
-                                              make_weighted_document_column([
-                                                  (cls.designname, 'A'),
-                                                  # (cls.oligos.seqeunce, 'A'),
-                                                  # (cls.genename, 'A'),
-                                                  # (Target.targetnamelong, 'A'),
-                                                  # (Target.targetnamealts, 'A'),
-                                                  (cls.designer, 'B'),
-                                                  (cls.location, 'B')
-                                              ]).label('document')).subquery()
+def search_designs(session, term):
 
-        search_query = local_session.query(cls.id,
-                                           cls.tmid,
-                                           cls.designname,
-                                           cls.designdate,
-                                           cls.designer,
-                                           cls.is_public,
-                                           cls.is_obsolete,
-                                           func.ts_rank(search_subquery.c.document,
-                                                        func.to_tsquery(term)))\
-                                    .join(search_subquery, cls.id == search_subquery.c.design_id)\
-                                    .filter(search_subquery.c.document.match(term))\
-                                    .order_by(desc(func.ts_rank(search_subquery.c.document,
-                                                                func.to_tsquery(term))))
+    # local_session = db.session.query(Target, Design).join(Design).session
+    #
+    # return local_session.query(Design.designname, Target.genename).join(Target).limit(20).all()
+    # return db.session.query(Design, Target).join(Target).limit(20).all()
 
-        return search_query.all()
+    term = to_query_term(term)
 
-        # # support reassignment through lists
-        # results = [[rank, did, dname, ddate, designer, pub, obs] for
-        #            rank, did, dname, ddate, designer, pub, obs in search_query.all()]
-        #
-        # return sorted(results, key=operator.itemgetter(0))[::-1]
+    search_subquery = session.query(
+        Design.id.label('design_id'),
+        make_weighted_document_column(
+            [(Design.designname, 'A'),
+             (Target.genename, 'A'),
+             (Target.targetnamealts, 'A'),
+             (Target.targetnamelong, 'B'),
+             (Design.designer, 'B'),
+             (Design.location, 'B')]).label('document')).join(Target).subquery()
+
+    search_query = session.query(
+        Design.id,
+        Design.tmid,
+        Design.designname,
+        Design.designdate,
+        Target.genename,
+        Target.targetnamelong,
+        Target.targetnamealts,
+        func.ts_rank(search_subquery.c.document, func.to_tsquery(term)))\
+        .join(Target)\
+        .join(search_subquery, Design.id == search_subquery.c.design_id)\
+        .filter(search_subquery.c.document.match(term))\
+        .order_by(desc(func.ts_rank(search_subquery.c.document,func.to_tsquery(term))))
+
+    return search_query.all()
+
+    # # support reassignment through lists
+    # results = [[rank, did, dname, ddate, designer, pub, obs] for
+    #            rank, did, dname, ddate, designer, pub, obs in search_query.all()]
+    #
+    # return sorted(results, key=operator.itemgetter(0))[::-1]
 
 
 class Oligo(db.Model):

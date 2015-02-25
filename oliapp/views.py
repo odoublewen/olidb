@@ -1,8 +1,10 @@
-from oliapp import app, db
-from oliapp.models import *
+from oliapp import app
+from oliapp import models
+from oliapp import db
+
 from flask import request, send_from_directory, render_template, g, abort
-from flask import make_response, url_for, flash, redirect
-from flask.ext.sqlalchemy import Pagination
+# from flask import make_response, url_for, flash, redirect
+# from flask.ext.sqlalchemy import Pagination
 
 @app.route('/')
 @app.route('/index')
@@ -12,15 +14,16 @@ def index():
 
 @app.route('/design/detail/<int:designid>')
 def design(designid):
-    des = Design.by_id(designid)
+    des = models.Design.by_id(designid)
     if not des:
         abort(404)
     g.des = des
     return render_template("design_details.html", title='Design detail')
 
+
 @app.route('/design/search/<term>')
 def design_search(term):
     g.term = term
-    g.results = Design.search(term)
+    g.results = models.search_designs(db.session, term)
     return render_template('design_searchresults.html')
 
