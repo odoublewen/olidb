@@ -13,7 +13,7 @@ def index():
 
 
 @app.route('/design/detail/<int:designid>')
-def design(designid):
+def design_detail(designid):
     des = models.Design.by_id(designid)
     if not des:
         abort(404)
@@ -21,9 +21,13 @@ def design(designid):
     return render_template("design_details.html", title='Design detail')
 
 
-@app.route('/design/search/<term>')
-def design_search(term):
-    g.term = term
-    g.results = models.search_designs(db.session, term)
-    return render_template('design_searchresults.html')
+@app.route('/design/list')
+def design_list():
+    if 'search' in request.args:
+        g.term = request.args['search']
+        g.results = models.search_designs(db.session, g.term)
+        return render_template('design_searchresults.html')
+    else:
+        abort(404)
+
 
