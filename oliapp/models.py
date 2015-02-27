@@ -2,7 +2,7 @@ import datetime
 from oliapp import db
 from lib.postgres import to_query_term, make_weighted_document_column
 from sqlalchemy.sql import func, desc
-
+from flask.ext.security import UserMixin, RoleMixin
 
 # class to hold gene_info file
 class Gene(db.Model):
@@ -55,8 +55,7 @@ class Accession(db.Model):
 experiment_design = db.Table(
     'experiment_design',
     db.Column('experiment_id', db.Integer, db.ForeignKey('experiment.id')),
-    db.Column('design_id', db.Integer, db.ForeignKey('design.id'))
-)
+    db.Column('design_id', db.Integer, db.ForeignKey('design.id')))
 
 
 class Experiment(db.Model):
@@ -67,7 +66,8 @@ class Experiment(db.Model):
     notes = db.Column(db.String(255), nullable=True)
     folder = db.Column(db.String(16), nullable=True)
     date = db.Column(db.DateTime, nullable=True)
-    designs = db.relationship('Design', secondary=experiment_design, backref=db.backref('experiments', lazy='dynamic'))
+    designs = db.relationship('Design', secondary=experiment_design,
+                              backref=db.backref('experiments', lazy='dynamic'))
 
     def __repr__(self):
         return '<Setname %r>' % self.setname
@@ -178,3 +178,25 @@ class Oligo(db.Model):
         return self.tubename
 
 
+role_user = db.Table(
+    'role_user',
+    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+    db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+
+
+class Role(db.Model, RoleMixin):
+    __tablename__ = 'role'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+
+
+class User(db.Model, UserMixin):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Role', secondary=role_user,
+                            backref=db.backref('users', lazy='dynamic'))

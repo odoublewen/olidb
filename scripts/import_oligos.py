@@ -112,6 +112,10 @@ if sys.argv[1] == 'oligos':
 if sys.argv[1] == 'genesets':
     loadgenesets()
 
+if sys.argv[1] == 'all':
+    loadgenes()
+    loadoligos()
+    loadgenesets()
 
 
 #select taxonomy, count(*) from target, design where target.id=design.target_id group by taxonomy;

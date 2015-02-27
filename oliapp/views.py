@@ -5,6 +5,7 @@ from oliapp import db
 from flask import request, send_from_directory, render_template, g, abort
 # from flask import make_response, url_for, flash, redirect
 # from flask.ext.sqlalchemy import Pagination
+from flask.ext.security import login_required
 
 @app.route('/')
 @app.route('/index')
@@ -25,9 +26,19 @@ def design_detail(designid):
 def design_list():
     if 'search' in request.args:
         g.term = request.args['search']
-        g.results = models.search_designs(db.session, g.term)
-        return render_template('design_searchresults.html')
     else:
-        abort(404)
+        g.term = 'actin'
+    g.results = models.search_designs(db.session, g.term)
+    g.active_page = 'design_list'
+    return render_template('design_list.html')
 
+@app.route('/design/create')
+@login_required
+def design_create():
+    g.active_page = 'design_create'
+    return render_template('index.html')
 
+@app.route('/experiment/list')
+def experiment_list():
+    g.active_page = 'experiment_list'
+    return render_template('index.html')

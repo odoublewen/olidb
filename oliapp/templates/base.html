@@ -6,7 +6,9 @@
     {% block meta %}{% endblock %}
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/simple-sidebar.css') }}" >
     <link rel="stylesheet" href="{{ url_for('static', filename='css/oli.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.2.js') }}" ></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>
     {% block head %}{% endblock %}
     {% block css %}{% endblock %}
@@ -14,6 +16,12 @@
 </head>
 
 <body>
+
+{% set navigation_bar = [
+    (url_for('design_list'), 'design_list', 'Browse designs'),
+    (url_for('design_create'), 'design_create', 'Create design'),
+    (url_for('experiment_list'), 'experiment_list', 'Browse experiments')
+] -%}
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container-fluid">
@@ -24,62 +32,57 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='favicon32.png') }}"></a>
+      <a class="navbar-brand" href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/favicon48.png') }}"></a>
     </div>
 
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Link</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-            <li class="divider"></li>
-            <li><a href="#">One more separated link</a></li>
-          </ul>
-        </li>
+        {% for href, id, caption in navigation_bar %}
+            <li{% if id == g.active_page %} class="active"{% endif %}><a href="{{ href }}">{{ caption }}</a></li>
+        {% endfor %}
       </ul>
 
       <form class="navbar-form navbar-left" role="search" action="{{ url_for('design_list') }}" method="get">
         <div class="form-group">
-          <input id="search-term" name="search" type="text" onclick="this.select()" class="form-control" placeholder="Search" value="{{ g.term }}">
+          <input id="search-term" name="search" type="text" onclick="this.select()" class="form-control" value="{{ g.term }}">
         </div>
-        <button id="search-button" type="submit" class="btn btn-default">Submit</button>
+        <button id="search-button" type="submit" class="btn btn-default">Search</button>
       </form>
 
-{#    <script type="text/javascript">#}
-{#        function searchURL(){#}
-{#                var term = document.getElementById('search-term').value;#}
-{#                var termQuery = encodeURIComponent(term);#}
-{#                var uri =  "/design/search/foo";#}
-{#                uri = uri.replace('foo', termQuery);#}
-{#                window.location.href = uri;#}
-{#                return false;#}
-{#            }#}
-{#    </script>#}
-
-
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Link</a></li>
+        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Benchtop</a>
       </ul>
     </div>
   </div>
 </nav>
 
-  <div id="wrap">
-      <div class="col-md-8">
-          {% block content %}{% endblock %}
-      </div>
-      <div class="col-md-4">
-          {% block resources %}{% endblock %}
-      </div>
-  </div>
 
+<div id="wrapper">
+
+    <div id="sidebar-wrapper">
+        {% block labbench %}{% include "_labbench.html" %}{% endblock %}
+    </div>
+
+    <div id="page-content-wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+<script>
+$("#menu-toggle").click(function(e) {
+    e.preventDefault();
+    $("#wrapper").toggleClass("toggled");
+});
+</script>
 
 </body>
 </html>
