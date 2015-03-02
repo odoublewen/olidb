@@ -25,15 +25,15 @@ def loadgenes():
 
         print '\t%s' % row.TUBENAME
 
-        d = models.Design()
+        d = models.Oligoset()
         d.tmid = row.TMID
-        d.designname = row.TUBENAME
+        d.setname = row.TUBENAME
         d.designer = row.DESIGNER
         d.location = row.LOCATION
         d.is_obsolete = row.STATUS == 1
         d.is_public = row.G_PUBLIC == 1
 
-        t.designs.append(d)
+        t.oligosets.append(d)
 
         db.session.add(t)
 
@@ -50,7 +50,7 @@ def loadoligos():
     for i, row in oligos.iterrows():
         if row.TUBENAME != last_tubename:
             last_tubename = row.TUBENAME
-            d = db.session.query(models.Design).filter_by(designname=row.TUBENAME)
+            d = db.session.query(models.Oligoset).filter_by(setname=row.TUBENAME)
             if d.count() == 0:
                 print 'WARNING NOT FOUND %s [%d]' % (row.TUBENAME, i)
             elif d.count() == 1:
@@ -94,9 +94,9 @@ def loadgenesets():
 
         # subset genesets_data
         for j, d in genesets_data.ix[genesets_data.GS_ID == gs.GS_ID].iterrows():
-            child = db.session.query(models.Design).filter_by(designname=d.TUBENAME).one()
-            ex.designs.append(child)
-            print '\t%s\t%d' % (child.designname, j)
+            child = db.session.query(models.Oligoset).filter_by(setname=d.TUBENAME).one()
+            ex.oligosets.append(child)
+            print '\t%s\t%d' % (child.setname, j)
 
         db.session.add(ex)
 
@@ -117,6 +117,3 @@ if sys.argv[1] == 'all':
     loadoligos()
     loadgenesets()
 
-
-#select taxonomy, count(*) from target, design where target.id=design.target_id group by taxonomy;
-#select taxonomy, count(*) from target, design, oligo where target.id=design.target_id and design.id=oligo.design_id group by taxonomy;

@@ -1,5 +1,5 @@
 from oliapp import app
-from oliapp import models
+from oliapp.models import Oligoset, Target, Experiment, search_oligosets
 from oliapp import db
 
 from flask import request, send_from_directory, render_template, g, abort
@@ -8,37 +8,46 @@ from flask import request, send_from_directory, render_template, g, abort
 from flask.ext.security import login_required
 
 @app.route('/')
-@app.route('/index')
+@app.route('/index/')
 def index():
     return render_template("index.html", title='Hello world home')
 
 
-@app.route('/design/detail/<int:designid>')
-def design_detail(designid):
-    des = models.Design.by_id(designid)
-    if not des:
-        abort(404)
-    g.des = des
-    return render_template("design_details.html", title='Design detail')
+@app.route('/oligoset/detail/<int:oligosetid>')
+def oligoset_detail(oligosetid):
+    g.des = Oligoset.query.get_or_404(oligosetid)
+    return render_template("oligoset_detail.html", title='Oligoset detail')
 
 
-@app.route('/design/list')
-def design_list():
-    if 'search' in request.args:
-        g.term = request.args['search']
+@app.route('/oligoset', defaults={'page': 1})
+@app.route('/oligoset/page/<int:page>')
+def oligoset_browse(page):
+    g.items = Oligoset.query.join(Target).paginate(page).items
+    g.active_page = 'oligoset_browse'
+    return render_template('oligoset_browse.html')
+
+
+@app.route('/experiment/', defaults={'page': 1})
+@app.route('/experiment/page/<int:page>')
+def experiment_browse(page):
+    g.items = Experiment.query.paginate(page).items
+    g.active_page = 'experiment_browse'
+    return render_template('experiment_browse.html')
+
+
+@app.route('/search')
+def site_search():
+    if 'term' in request.args:
+        g.term = request.args['term']
     else:
         g.term = 'actin'
-    g.results = models.search_designs(db.session, g.term)
-    g.active_page = 'design_list'
-    return render_template('design_list.html')
+    g.results = search_oligosets(db.session, g.term)
+    g.active_page = 'search'
+    return render_template('search_results.html')
 
 @app.route('/design/create')
 @login_required
-def design_create():
+def oligoset_create():
     g.active_page = 'design_create'
     return render_template('index.html')
 
-@app.route('/experiment/list')
-def experiment_list():
-    g.active_page = 'experiment_list'
-    return render_template('index.html')

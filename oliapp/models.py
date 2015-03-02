@@ -52,10 +52,10 @@ class Accession(db.Model):
         return '<%r %r>' % self.symbol, self.rna_acc
 
 
-experiment_design = db.Table(
-    'experiment_design',
+experiment_oligoset = db.Table(
+    'experiment_oligoset',
     db.Column('experiment_id', db.Integer, db.ForeignKey('experiment.id')),
-    db.Column('design_id', db.Integer, db.ForeignKey('design.id')))
+    db.Column('oligoset_id', db.Integer, db.ForeignKey('oligoset.id')))
 
 
 class Experiment(db.Model):
@@ -66,8 +66,8 @@ class Experiment(db.Model):
     notes = db.Column(db.String(255), nullable=True)
     folder = db.Column(db.String(16), nullable=True)
     date = db.Column(db.DateTime, nullable=True)
-    designs = db.relationship('Design', secondary=experiment_design,
-                              backref=db.backref('experiments', lazy='dynamic'))
+    oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
+                                backref=db.backref('experiments', lazy='dynamic'))
 
     def __repr__(self):
         return '<Setname %r>' % self.setname
@@ -85,7 +85,7 @@ class Target(db.Model):
     __tablename__ = 'target'
     id = db.Column(db.Integer, primary_key=True)
     accession_id = db.Column(db.Integer, db.ForeignKey('accession.id'), nullable=True)
-    designs = db.relationship('Design', backref='target')
+    oligosets = db.relationship('Oligoset', backref='target')
 
     taxonomy = db.Column(db.String(4), nullable=False)
     genename = db.Column(db.String(64), nullable=False)
@@ -96,59 +96,49 @@ class Target(db.Model):
         return '<%s>' % self.genename
 
 
-class Design(db.Model):
-    __tablename__ = 'design'
+class Oligoset(db.Model):
+    __tablename__ = 'oligoset'
     id = db.Column(db.Integer, primary_key=True)
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'))
-    oligos = db.relationship('Oligo', backref='design')
+    oligos = db.relationship('Oligo', backref='oligoset')
 
     tmid = db.Column(db.Integer, nullable=False)
-    designname = db.Column(db.String(64), nullable=False, unique=True)
-    designdate = db.Column(db.DateTime, nullable=True)
+    setname = db.Column(db.String(64), nullable=False, unique=True)
+    setdate = db.Column(db.DateTime, nullable=True)
     designer = db.Column(db.String(64), nullable=False)
     location = db.Column(db.String(64), nullable=False)
     is_public = db.Column(db.Boolean(), default=False)
     is_obsolete = db.Column(db.Boolean(), default=False)
 
     def __repr__(self):
-        return '<%s>' % self.designname
-
-    @classmethod
-    def by_id(cls, designid):
-        query = cls.query.get(designid)
-        return query
+        return '<%s>' % self.setname
 
 
-def search_designs(session, term):
-
-    # local_session = db.session.query(Target, Design).join(Design).session
-    #
-    # return local_session.query(Design.designname, Target.genename).join(Target).limit(20).all()
-    # return db.session.query(Design, Target).join(Target).limit(20).all()
+def search_oligosets(session, term):
 
     term = to_query_term(term)
 
     search_subquery = session.query(
-        Design.id.label('design_id'),
+        Oligoset.id.label('oligoset_id'),
         make_weighted_document_column(
-            [(Design.designname, 'A'),
+            [(Oligoset.setname, 'A'),
              (Target.genename, 'A'),
              (Target.targetnamealts, 'A'),
              (Target.targetnamelong, 'B'),
-             (Design.designer, 'B'),
-             (Design.location, 'B')]).label('document')).join(Target).subquery()
+             (Oligoset.designer, 'B'),
+             (Oligoset.location, 'B')]).label('document')).join(Target).subquery()
 
     search_query = session.query(
-        Design.id,
-        Design.tmid,
-        Design.designname,
-        Design.designdate,
+        Oligoset.id,
+        Oligoset.tmid,
+        Oligoset.setname,
+        Oligoset.setdate,
         Target.genename,
         Target.targetnamelong,
         Target.targetnamealts,
         func.ts_rank(search_subquery.c.document, func.to_tsquery(term)))\
         .join(Target)\
-        .join(search_subquery, Design.id == search_subquery.c.design_id)\
+        .join(search_subquery, Oligoset.id == search_subquery.c.oligoset_id)\
         .filter(search_subquery.c.document.match(term))\
         .order_by(desc(func.ts_rank(search_subquery.c.document,func.to_tsquery(term))))
 
@@ -164,7 +154,7 @@ def search_designs(session, term):
 class Oligo(db.Model):
     __tablename__ = 'oligo'
     id = db.Column(db.Integer, primary_key=True)
-    design_id = db.Column(db.Integer, db.ForeignKey('design.id'))
+    oligoset_id = db.Column(db.Integer, db.ForeignKey('oligoset.id'))
 
     oligoid = db.Column(db.Integer, nullable=False)
     sequence = db.Column(db.String(255), nullable=False)
