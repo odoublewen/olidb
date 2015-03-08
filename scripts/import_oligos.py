@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 
 import pandas as pd
-from oliapp import db, models
+from oliapp import db
+from oliapp.models import Target, Oligoset, Oligo, Experiment
 import sys
-
+from sqlalchemy import func, select, update
 
 def loadgenes():
     genes = pd.io.parsers.read_csv('scripts/genes.csv')
     genes = genes.sort(['TAXONOMY', 'GENENAME'])
 
     for i, row in genes.iterrows():
-        t = db.session.query(models.Target).filter_by(genename=row.GENENAME)
+        t = db.session.query(Target).filter_by(symbol=row.GENENAME)
         if t.count() == 0:
             print '%s [%d]' % (row.GENENAME, i)
-            t = models.Target()
+            t = Target()
             t.taxonomy = row.TAXONOMY
-            t.genename = row.GENENAME
-            t.targetnamelong = row.GENENAMELONG
-            t.targetnamealts = row.GENENAMEALTS
+            t.symbol = row.GENENAME
+            t.namelong = row.GENENAMELONG
+            t.namealts = row.GENENAMEALTS
         elif t.count() == 1:
             t = t.one()
         else:
@@ -25,10 +26,10 @@ def loadgenes():
 
         print '\t%s' % row.TUBENAME
 
-        d = models.Oligoset()
+        d = Oligoset()
         d.tmid = row.TMID
-        d.setname = row.TUBENAME
-        d.designer = row.DESIGNER
+        d.name = row.TUBENAME
+        d.notes = row.DESIGNER
         d.location = row.LOCATION
         d.is_obsolete = row.STATUS == 1
         d.is_public = row.G_PUBLIC == 1
@@ -50,7 +51,7 @@ def loadoligos():
     for i, row in oligos.iterrows():
         if row.TUBENAME != last_tubename:
             last_tubename = row.TUBENAME
-            d = db.session.query(models.Oligoset).filter_by(setname=row.TUBENAME)
+            d = db.session.query(Oligoset).filter_by(name=row.TUBENAME)
             if d.count() == 0:
                 print 'WARNING NOT FOUND %s [%d]' % (row.TUBENAME, i)
             elif d.count() == 1:
@@ -61,7 +62,7 @@ def loadoligos():
 
         print '\t%s' % row.OLIGO
 
-        o = models.Oligo()
+        o = Oligo()
 
         o.oligoid = row.ID
         o.sequence = row.SEQUENCE
@@ -73,9 +74,75 @@ def loadoligos():
 
         d.oligos.append(o)
 
+        # d.date = min(d.oligos.orderdate)
+
         db.session.add(d)
 
     db.session.commit()
+
+
+def updateoligosetdate():
+    for r in Oligoset.query.all():
+        newdate = db.session.query(func.min(Oligo.orderdate)).filter(Oligo.oligoset_id==r.id).one()
+        print r.id, r.date, newdate
+        r.date = newdate
+    db.session.commit()
+
+
+#
+#
+# for r in db.session.query(Oligoset.id, Oligoset.date, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).all():
+#     print r.date, r.newdate
+#     r.date = r.newdate
+#     print r.date, r.newdate
+#     print
+#     db.session.commit()
+#
+# db.session.flush()
+#
+#
+# db.session.query(Oligoset.id, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).update({Oligoset.date: Oligo.c.newdate})
+#
+#
+# db.session.query(Oligoset).filter(Oligoset.id.in_(subq)).update({Price.extra: 20000}, synchronize_session=False)
+#
+#
+#
+#
+# Oligoset.query.update().values(date=select([subq.c.newdate]).where(Oligoset.id==subq.c.id))
+#
+# db.session.execute(update(Oligoset, values={Oligoset.date: select([subq.c.newdate]).where(Oligoset.id==subq.c.id)}))
+#
+#
+# ).where query(Oligoset.id, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).subquery()
+#
+#
+# myjoin.update().values(Oligoset.date=subq.c.newdate)
+#
+#
+# db.session.execute(update(myjoin)., values={myjoin.c.date: myjoin.c.newdate}))
+#
+# db.session.execute(update(db.session.query(Oligoset.date, subq.c.newdate).join(subq, Oligoset.id == subq.c.id))
+#
+#
+# stmt = update(myjoin
+#     db.session.query(Oligoset).join(subq, Oligoset.id == subq.c.id)).values(date=subq.c.newdate)
+#
+# db.session.query(Oligoset).join(subq, Oligoset.id == subq.c.id)).values(date=subq.c.newdate).update().values(Oligoset.date=sub.c.newdate)
+#
+#
+# Oligoset.update()
+#
+# db.session.query(Oligoset,subq.c.newdate).join(subq, Oligoset.id == subq.c.id).all()
+# db.session.update(Oligoset).innerjoin(subq, Oligoset.id == subq.c.id).values(date=subq.c.newdate)
+
+
+    # .oligoset_id, func.min(Oligo.orderdate).label('date')).\
+    #     group_by(Oligo.oligoset_id)
+    #
+    # stmt = Oligoset.update().values(date=newdates.date).where(id=newdates.oligoset_id)
+    #
+    # print stmt
 
 def loadgenesets():
     genesets = pd.io.parsers.read_csv('scripts/genesets.csv', na_filter=False)
@@ -84,7 +151,7 @@ def loadgenesets():
     genesets_data = pd.io.parsers.read_csv('scripts/genesets_data.csv')
 
     for i, gs in genesets.iterrows():
-        ex = models.Experiment()
+        ex = Experiment()
         ex.name = gs.GS_ID
         ex.description = gs.GS_NAME
         ex.date = gs.GS_DATE
@@ -94,9 +161,9 @@ def loadgenesets():
 
         # subset genesets_data
         for j, d in genesets_data.ix[genesets_data.GS_ID == gs.GS_ID].iterrows():
-            child = db.session.query(models.Oligoset).filter_by(setname=d.TUBENAME).one()
+            child = db.session.query(Oligoset).filter_by(name=d.TUBENAME).one()
             ex.oligosets.append(child)
-            print '\t%s\t%d' % (child.setname, j)
+            print '\t%s\t%d' % (child.name, j)
 
         db.session.add(ex)
 
@@ -109,11 +176,15 @@ if sys.argv[1] == 'genes':
 if sys.argv[1] == 'oligos':
     loadoligos()
 
+if sys.argv[1] == 'dates':
+    updateoligosetdate()
+
 if sys.argv[1] == 'genesets':
     loadgenesets()
 
 if sys.argv[1] == 'all':
     loadgenes()
     loadoligos()
+    updateoligosetdate()
     loadgenesets()
 

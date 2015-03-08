@@ -7,6 +7,13 @@ from flask import request, send_from_directory, render_template, g, abort
 # from flask.ext.sqlalchemy import Pagination
 from flask.ext.security import login_required
 
+@app.template_filter('isodate')
+def _jinja2_filter_datetime(date, fmt=None):
+    try:
+        return date.strftime('%Y-%m-%d')
+    except AttributeError:
+        return ''
+
 @app.route('/')
 @app.route('/index/')
 def index():
@@ -22,7 +29,7 @@ def oligoset_detail(oligosetid):
 @app.route('/oligoset', defaults={'page': 1})
 @app.route('/oligoset/page/<int:page>')
 def oligoset_browse(page):
-    g.items = Oligoset.query.join(Target).paginate(page).items
+    g.pagination = Oligoset.query.join(Target).paginate(page)
     g.active_page = 'oligoset_browse'
     return render_template('oligoset_browse.html')
 
@@ -30,7 +37,7 @@ def oligoset_browse(page):
 @app.route('/experiment/', defaults={'page': 1})
 @app.route('/experiment/page/<int:page>')
 def experiment_browse(page):
-    g.items = Experiment.query.paginate(page).items
+    g.pagination = Experiment.query.paginate(page)
     g.active_page = 'experiment_browse'
     return render_template('experiment_browse.html')
 

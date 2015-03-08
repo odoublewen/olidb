@@ -68,9 +68,10 @@ class Experiment(db.Model):
     date = db.Column(db.DateTime, nullable=True)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
                                 backref=db.backref('experiments', lazy='dynamic'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def __repr__(self):
-        return '<Setname %r>' % self.setname
+        return '<%r>' % self.name
 
     # TODO: add properties, etc
     # @property
@@ -88,30 +89,31 @@ class Target(db.Model):
     oligosets = db.relationship('Oligoset', backref='target')
 
     taxonomy = db.Column(db.String(4), nullable=False)
-    genename = db.Column(db.String(64), nullable=False)
-    targetnamelong = db.Column(db.String(255), nullable=True)
-    targetnamealts = db.Column(db.String(255), nullable=True)
+    symbol = db.Column(db.String(64), nullable=False)
+    namelong = db.Column(db.String(255), nullable=True)
+    namealts = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
-        return '<%s>' % self.genename
+        return '<%s>' % self.symbol
 
 
 class Oligoset(db.Model):
     __tablename__ = 'oligoset'
     id = db.Column(db.Integer, primary_key=True)
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     oligos = db.relationship('Oligo', backref='oligoset')
 
     tmid = db.Column(db.Integer, nullable=False)
-    setname = db.Column(db.String(64), nullable=False, unique=True)
-    setdate = db.Column(db.DateTime, nullable=True)
-    designer = db.Column(db.String(64), nullable=False)
+    name = db.Column(db.String(64), nullable=False, unique=True)
+    date = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.String(64), nullable=False)
     location = db.Column(db.String(64), nullable=False)
     is_public = db.Column(db.Boolean(), default=False)
     is_obsolete = db.Column(db.Boolean(), default=False)
 
     def __repr__(self):
-        return '<%s>' % self.setname
+        return '<%s>' % self.name
 
 
 def search_oligosets(session, term):
@@ -121,21 +123,21 @@ def search_oligosets(session, term):
     search_subquery = session.query(
         Oligoset.id.label('oligoset_id'),
         make_weighted_document_column(
-            [(Oligoset.setname, 'A'),
-             (Target.genename, 'A'),
-             (Target.targetnamealts, 'A'),
-             (Target.targetnamelong, 'B'),
+            [(Oligoset.name, 'A'),
+             (Target.symbol, 'A'),
+             (Target.namealts, 'A'),
+             (Target.namelong, 'B'),
              (Oligoset.designer, 'B'),
              (Oligoset.location, 'B')]).label('document')).join(Target).subquery()
 
     search_query = session.query(
         Oligoset.id,
         Oligoset.tmid,
-        Oligoset.setname,
+        Oligoset.name,
         Oligoset.setdate,
-        Target.genename,
-        Target.targetnamelong,
-        Target.targetnamealts,
+        Target.symbol,
+        Target.namelong,
+        Target.namealts,
         func.ts_rank(search_subquery.c.document, func.to_tsquery(term)))\
         .join(Target)\
         .join(search_subquery, Oligoset.id == search_subquery.c.oligoset_id)\
@@ -190,3 +192,5 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Role', secondary=role_user,
                             backref=db.backref('users', lazy='dynamic'))
+    oligosets = db.relationship('Oligoset', backref='user')
+    experiments = db.relationship('Experiment', backref='user')

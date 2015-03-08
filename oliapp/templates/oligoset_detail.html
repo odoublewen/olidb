@@ -4,13 +4,13 @@
 
 
     <table class="table table-bordered table-condensed table-striped">
-    <tr><td>Oligoset name</td><td>{{ g.des.setname }}</td></tr>
+    <tr><td>Oligoset name</td><td>{{ g.des.name }}</td></tr>
     <tr><td>TM ID</td><td>{{ g.des.tmid }}</td></tr>
-    <tr><td>designer</td><td>{{ g.des.designer }}</td></tr>
-    <tr><td>design date</td><td></td></tr>
-    <tr><td>target symbol</td><td>{{ g.des.target.genename }}</td></tr>
-    <tr><td>target description</td><td>{{ g.des.target.targetnamelong }}</td></tr>
-    <tr><td>target name alts</td><td>{{ g.des.target.targetnamealts }}</td></tr>
+    <tr><td>notes</td><td>{{ g.des.notes }}</td></tr>
+    <tr><td>design date</td><td>{{ g.des.date|isodate }}</td></tr>
+    <tr><td>target symbol</td><td>{{ g.des.target.symbol }}</td></tr>
+    <tr><td>target description</td><td>{{ g.des.target.namelong }}</td></tr>
+    <tr><td>target name alts</td><td>{{ g.des.target.namealts }}</td></tr>
     </table>
 
     <h2>Oligo details</h2>
@@ -26,7 +26,7 @@
         <td>{{ o }}</td>
         <td>{{ o.oligoid }}</td>
         <td>{{ o.sequence }}</td>
-        <td>{% if o.orderdate.strftime %}{{ o.orderdate.strftime('%Y-%m-%d') }}{% endif %}</td>
+        <td>{{ o.orderdate|isodate }}</td>
     </tr>
     {% endfor %}
     </table>
