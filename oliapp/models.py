@@ -63,9 +63,8 @@ class Experiment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
     description = db.Column(db.String(255), nullable=True)
-    notes = db.Column(db.String(255), nullable=True)
-    folder = db.Column(db.String(16), nullable=True)
     date = db.Column(db.DateTime, nullable=True)
+    is_public = db.Column(db.Boolean, nullable=False, default=False)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
                                 backref=db.backref('experiments', lazy='dynamic'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
@@ -109,8 +108,8 @@ class Oligoset(db.Model):
     date = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.String(64), nullable=False)
     location = db.Column(db.String(64), nullable=False)
-    is_public = db.Column(db.Boolean(), default=False)
-    is_obsolete = db.Column(db.Boolean(), default=False)
+    is_public = db.Column(db.Boolean, nullable=False, default=False)
+    is_obsolete = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return '<%s>' % self.name

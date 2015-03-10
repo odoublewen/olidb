@@ -153,10 +153,8 @@ def loadgenesets():
     for i, gs in genesets.iterrows():
         ex = Experiment()
         ex.name = gs.GS_ID
-        ex.description = gs.GS_NAME
+        ex.description = ' / '.join([x for x in [gs.FOLDER, gs.GS_NAME] if x != ''])
         ex.date = gs.GS_DATE
-        ex.folder = gs.FOLDER
-        ex.notes = gs.GS_NOTES
         print "%s\t%d" % (gs.GS_NAME, i)
 
         # subset genesets_data
