@@ -4,7 +4,6 @@ from oliapp import db
 
 from flask import request, send_from_directory, render_template, g, abort
 # from flask import make_response, url_for, flash, redirect
-# from flask.ext.sqlalchemy import Pagination
 from flask.ext.security import login_required
 
 @app.template_filter('isodate')
@@ -29,8 +28,11 @@ def oligoset_detail(oligosetid):
 @app.route('/oligoset', defaults={'page': 1})
 @app.route('/oligoset/page/<int:page>')
 def oligoset_browse(page):
+    if 'term' in request.args:
+        g.term = request.args['term']
     g.pagination = Oligoset.query.join(Target).paginate(page)
     g.active_page = 'oligoset_browse'
+    g.taxa = [q.taxa for q in db.session.query(Target.taxonomy.distinct().label("taxa")).order_by(Target.taxonomy).all()]
     return render_template('oligoset_browse.html')
 
 
@@ -46,11 +48,11 @@ def experiment_browse(page):
 def site_search():
     if 'term' in request.args:
         g.term = request.args['term']
-    else:
-        g.term = 'actin'
+    # else:
+    #     g.term = 'actin'
     g.results = search_oligosets(db.session, g.term)
     g.active_page = 'search'
-    return render_template('search_results.html')
+    return render_template('site_search.html')
 
 @app.route('/design/create')
 @login_required

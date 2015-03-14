@@ -126,14 +126,14 @@ def search_oligosets(session, term):
              (Target.symbol, 'A'),
              (Target.namealts, 'A'),
              (Target.namelong, 'B'),
-             (Oligoset.designer, 'B'),
+             (Oligoset.notes, 'B'),
              (Oligoset.location, 'B')]).label('document')).join(Target).subquery()
 
     search_query = session.query(
         Oligoset.id,
         Oligoset.tmid,
         Oligoset.name,
-        Oligoset.setdate,
+        Oligoset.date,
         Target.symbol,
         Target.namelong,
         Target.namealts,
@@ -144,12 +144,6 @@ def search_oligosets(session, term):
         .order_by(desc(func.ts_rank(search_subquery.c.document,func.to_tsquery(term))))
 
     return search_query.all()
-
-    # # support reassignment through lists
-    # results = [[rank, did, dname, ddate, designer, pub, obs] for
-    #            rank, did, dname, ddate, designer, pub, obs in search_query.all()]
-    #
-    # return sorted(results, key=operator.itemgetter(0))[::-1]
 
 
 class Oligo(db.Model):
