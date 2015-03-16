@@ -1,4 +1,5 @@
 {% macro render_pagination() %}
+<div class="pagination">
   <ul class="pagination">
   {% if g.pagination.has_prev %}
   <li><a href="{{ url_for(g.active_page, page=g.pagination.prev_num) }}">«</a></li>
@@ -22,4 +23,5 @@
   <li class="disabled"><a href="#">»</a></li>
   {% endif %}
   </ul>
+</div>
 {% endmacro %}

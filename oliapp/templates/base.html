@@ -57,7 +57,7 @@
 
             <form class="navbar-form navbar-right" role="search" action="{{ url_for('site_search') }}" method="get">
                 <div class="form-group">
-                    <input id="search-term" name="term" type="text" onclick="this.select()" class="form-control" value="{{ g.term }}">
+                    <input id="search-term" name="siteterm" type="text" onclick="this.select()" class="form-control" value="{{ g.siteterm }}">
                 </div>
                 <button id="search-button" type="submit" class="btn btn-default">Search</button>
             </form>

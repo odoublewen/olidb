@@ -108,3 +108,28 @@ body {
     color: #fff;
     background: none;
 }
+
+/* pagination css */
+#filter-row form {
+    margin: 0.25em 0;
+}
+
+#filter-row .pagination {
+    margin-top: 0;
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+#filter-row form > * {
+    vertical-align: top;
+    margin-right: 0.5em;
+}
+
+#filter-row label {
+    line-height: 31px;
+    margin-left: 1em;
+}
+
+#filter-row .input-append label {
+    line-height: inherit;
+}
