@@ -36,10 +36,10 @@ body {
     margin-left: -250px;
     overflow-y: auto;
     background: #e4e4e4;
-    -webkit-transition: all 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -o-transition: all 0.5s ease;
-    transition: all 0.5s ease;
+    /*-webkit-transition: all 0.5s ease;*/
+    /*-moz-transition: all 0.5s ease;*/
+    /*-o-transition: all 0.5s ease;*/
+    /*transition: all 0.5s ease;*/
 }
 
 #wrapper.toggled #sidebar-wrapper {
@@ -50,10 +50,10 @@ body {
     width: 100%;
     position: absolute;
     padding: 15px;
-    -webkit-transition: all 0.5s ease;
-    -moz-transition: all 0.5s ease;
-    -o-transition: all 0.5s ease;
-    transition: all 0.5s ease;
+    /*-webkit-transition: all 0.5s ease;*/
+    /*-moz-transition: all 0.5s ease;*/
+    /*-o-transition: all 0.5s ease;*/
+    /*transition: all 0.5s ease;*/
 }
 
 #wrapper.toggled #page-content-wrapper {

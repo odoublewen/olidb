@@ -74,8 +74,6 @@ def loadoligos():
 
         d.oligos.append(o)
 
-        # d.date = min(d.oligos.orderdate)
-
         db.session.add(d)
 
     db.session.commit()
@@ -89,60 +87,6 @@ def updateoligosetdate():
     db.session.commit()
 
 
-#
-#
-# for r in db.session.query(Oligoset.id, Oligoset.date, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).all():
-#     print r.date, r.newdate
-#     r.date = r.newdate
-#     print r.date, r.newdate
-#     print
-#     db.session.commit()
-#
-# db.session.flush()
-#
-#
-# db.session.query(Oligoset.id, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).update({Oligoset.date: Oligo.c.newdate})
-#
-#
-# db.session.query(Oligoset).filter(Oligoset.id.in_(subq)).update({Price.extra: 20000}, synchronize_session=False)
-#
-#
-#
-#
-# Oligoset.query.update().values(date=select([subq.c.newdate]).where(Oligoset.id==subq.c.id))
-#
-# db.session.execute(update(Oligoset, values={Oligoset.date: select([subq.c.newdate]).where(Oligoset.id==subq.c.id)}))
-#
-#
-# ).where query(Oligoset.id, func.min(Oligo.orderdate).label('newdate')).join(Oligo).group_by(Oligoset.id).subquery()
-#
-#
-# myjoin.update().values(Oligoset.date=subq.c.newdate)
-#
-#
-# db.session.execute(update(myjoin)., values={myjoin.c.date: myjoin.c.newdate}))
-#
-# db.session.execute(update(db.session.query(Oligoset.date, subq.c.newdate).join(subq, Oligoset.id == subq.c.id))
-#
-#
-# stmt = update(myjoin
-#     db.session.query(Oligoset).join(subq, Oligoset.id == subq.c.id)).values(date=subq.c.newdate)
-#
-# db.session.query(Oligoset).join(subq, Oligoset.id == subq.c.id)).values(date=subq.c.newdate).update().values(Oligoset.date=sub.c.newdate)
-#
-#
-# Oligoset.update()
-#
-# db.session.query(Oligoset,subq.c.newdate).join(subq, Oligoset.id == subq.c.id).all()
-# db.session.update(Oligoset).innerjoin(subq, Oligoset.id == subq.c.id).values(date=subq.c.newdate)
-
-
-    # .oligoset_id, func.min(Oligo.orderdate).label('date')).\
-    #     group_by(Oligo.oligoset_id)
-    #
-    # stmt = Oligoset.update().values(date=newdates.date).where(id=newdates.oligoset_id)
-    #
-    # print stmt
 
 def loadgenesets():
     genesets = pd.io.parsers.read_csv('scripts/genesets.csv', na_filter=False)
@@ -155,6 +99,7 @@ def loadgenesets():
         ex.name = gs.GS_ID
         ex.description = ' / '.join([x for x in [gs.FOLDER, gs.GS_NAME] if x != ''])
         ex.date = gs.GS_DATE
+        ex.is_public = True
         print "%s\t%d" % (gs.GS_NAME, i)
 
         # subset genesets_data

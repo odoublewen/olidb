@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/oli.css') }}" />
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.2.js') }}" ></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.cookie.js') }}" ></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>
     {% block head %}{% endblock %}
     {% block css %}{% endblock %}
@@ -17,9 +18,8 @@
 <body>
 
 {% set navigation_bar = [
-    (url_for('oligoset_create'), 'oligoset_create', 'Create oligos'),
-    (url_for('oligoset_browse'), 'oligoset_browse', 'Browse oligos'),
-    (url_for('experiment_browse'), 'experiment_browse', 'Browse experiments'),
+    (url_for('oligoset_browse'), 'oligoset_browse', 'Oligos'),
+    (url_for('experiment_browse'), 'experiment_browse', 'Experiments'),
 ] -%}
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -89,10 +89,36 @@
 
 
 <script>
+
+$(document).ready(function() {
+    var menu_toggle = $.cookie('menu-toggle');
+    var wrapper = $('#wrapper');
+    if(menu_toggle) {
+        wrapper.attr('class', menu_toggle);
+    }
+
     $("#menu-toggle").click(function(e) {
         e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
+        wrapper.toggleClass("toggled");
+        $.cookie("menu-toggle", wrapper.attr('class'), {expires: 1, path:'/'});
     });
+});
+
+
+
+
+{#    $(function(){#}
+{#       if($.cookie){#}
+{#           //By default, if no cookie, just display.#}
+{#           $("#wrapper").toggle(!(!!$.cookie("menu-toggle")) || $.cookie("menu-toggle") === 'true');#}
+{#    }#}
+{##}
+{#    $("#wrapper").click(function(e) {#}
+{#        e.preventDefault();#}
+{#        $("#wrapper").toggleClass("toggled");#}
+{#        $.cookie("menu-toggle", $("#wrapper").is(':visible'), {expires: 1, path:'/'});#}
+{#    });#}
+{#    });#}
 </script>
 
 </body>

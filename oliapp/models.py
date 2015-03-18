@@ -65,6 +65,7 @@ class Experiment(db.Model):
     description = db.Column(db.String(255), nullable=True)
     date = db.Column(db.DateTime, nullable=True)
     is_public = db.Column(db.Boolean, nullable=False, default=False)
+    is_benchtop = db.Column(db.Boolean, nullable=False, default=False)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
                                 backref=db.backref('experiments', lazy='dynamic'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
