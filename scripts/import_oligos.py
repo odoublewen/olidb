@@ -7,7 +7,7 @@ import sys
 from sqlalchemy import func, select, update
 
 def loadgenes():
-    genes = pd.io.parsers.read_csv('scripts/genes.csv')
+    genes = pd.io.parsers.read_csv('/vagrant_data/genes.csv')
     genes = genes.sort(['TAXONOMY', 'GENENAME'])
 
     for i, row in genes.iterrows():
@@ -42,7 +42,7 @@ def loadgenes():
 
 
 def loadoligos():
-    oligos = pd.io.parsers.read_csv('scripts/oligos.csv', na_filter=False)
+    oligos = pd.io.parsers.read_csv('/vagrant_data/oligos.csv', na_filter=False)
 
     oligos = oligos.sort(['TAXONOMY', 'ID'])
     oligos['ORDERDATEDATE'] = pd.to_datetime(oligos.ORDERDATE)
@@ -89,10 +89,10 @@ def updateoligosetdate():
 
 
 def loadgenesets():
-    genesets = pd.io.parsers.read_csv('scripts/genesets.csv', na_filter=False)
+    genesets = pd.io.parsers.read_csv('/vagrant_data/genesets.csv', na_filter=False)
     genesets['DATEDATE'] = pd.to_datetime(genesets.GS_DATE)
 
-    genesets_data = pd.io.parsers.read_csv('scripts/genesets_data.csv')
+    genesets_data = pd.io.parsers.read_csv('/vagrant_data/genesets_data.csv')
 
     for i, gs in genesets.iterrows():
         ex = Experiment()

@@ -18,4 +18,8 @@ su - vagrant -c 'createdb olidb'
 
 pip install -r /vagrant/requirements.txt
 
+cd /vagrant
+su - vagrant -c './scripts/reinitialize_database.sh'
+su - vagrant -c '#./manage.py runserver --host 0.0.0.0 --reload --debug'  # for the history
+
 echo "You've been provisioned"
