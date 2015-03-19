@@ -30,10 +30,10 @@ def oligoset_detail(oligosetid):
 def benchtop():
     g.active_page = 'benchtop'
     g.experiment = Experiment.query.filter(and_(Experiment.user_id == current_user.id, Experiment.is_benchtop.is_(True))).first()
-    # if g.experiment is None:
-    #     g.experiment = Experiment(name='My Benchtop', is_benchtop=True, user_id=current_user.id)
-    #     db.session.add(g.experiment)
-    #     db.session.commit()
+    if g.experiment is None:
+        g.experiment = Experiment(name='My Benchtop', is_benchtop=True, user_id=current_user.id)
+        db.session.add(g.experiment)
+        db.session.commit()
 
     return render_template('benchtop.html')
 
