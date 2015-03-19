@@ -17,3 +17,6 @@ MAIL_SERVER = 'smtp.mailgun.org'
 # MAIL_DEBUG : default app.debug
 MAIL_USERNAME = 'postmaster@sandboxb9243efefa074a75bd30d57d78a6c13b.mailgun.org'
 MAIL_PASSWORD = '9510fe09e22c6cf4490fc1efdf2d5a16'
+
+SIJAX_STATIC_PATH = os.path.join(basedir, 'static/js/sijax/')
+SIJAX_JSON_URI = '/static/js/sijax/json2.js'

@@ -10,6 +10,8 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.2.js') }}" ></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.cookie.js') }}" ></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
+    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
     {% block head %}{% endblock %}
     {% block css %}{% endblock %}
     {% block js %}{% endblock %}
@@ -18,8 +20,9 @@
 <body>
 
 {% set navigation_bar = [
-    (url_for('oligoset_browse'), 'oligoset_browse', 'Oligos'),
-    (url_for('experiment_browse'), 'experiment_browse', 'Experiments'),
+    ('oligosets', 'Oligos'),
+    ('experiments', 'Experiments'),
+    ('benchtop', 'My Benchtop'),
 ] -%}
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -36,21 +39,20 @@
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                {% for href, id, caption in navigation_bar %}
-                    <li{% if id == g.active_page %} class="active"{% endif %}><a href="{{ href }}">{{ caption }}</a></li>
+                {% for page, caption in navigation_bar %}
+                    <li{% if page == g.active_page %} class="active"{% endif %}><a href="{{ url_for(page) }}">{{ caption }}</a></li>
                 {% endfor %}
                 {% if current_user.is_authenticated() %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ current_user.email }}<span class="caret"></span></a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="#menu-toggle" id="menu-toggle">Toggle My Benchtop</a></li>
-                                <li><a href="/logout">Logout</a></li>
+                                <li><a href="{{ url_for('security.logout') }}">Logout</a></li>
                             </ul>
                     </li>
                 {% else %}
                     <li>
-                        <a href="/login">Login</a>
+                        <a href="{{ url_for('security.login') }}">Login</a>
                     </li>
                 {% endif %}
             </ul>
@@ -66,60 +68,15 @@
 </nav>
 
 
-<div id="wrapper">
-
-
-    <div id="page-content-wrapper">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    {% block content %}{% endblock %}
-                </div>
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                {% block content %}{% endblock %}
             </div>
         </div>
     </div>
-
-    <div id="sidebar-wrapper">
-        <div class="container-fluid">
-            {% block labbench %}{% include "_labbench.html" %}{% endblock %}
-        </div>
-    </div>
-
 </div>
-
-
-<script>
-
-$(document).ready(function() {
-    var menu_toggle = $.cookie('menu-toggle');
-    var wrapper = $('#wrapper');
-    if(menu_toggle) {
-        wrapper.attr('class', menu_toggle);
-    }
-
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        wrapper.toggleClass("toggled");
-        $.cookie("menu-toggle", wrapper.attr('class'), {expires: 1, path:'/'});
-    });
-});
-
-
-
-
-{#    $(function(){#}
-{#       if($.cookie){#}
-{#           //By default, if no cookie, just display.#}
-{#           $("#wrapper").toggle(!(!!$.cookie("menu-toggle")) || $.cookie("menu-toggle") === 'true');#}
-{#    }#}
-{##}
-{#    $("#wrapper").click(function(e) {#}
-{#        e.preventDefault();#}
-{#        $("#wrapper").toggleClass("toggled");#}
-{#        $.cookie("menu-toggle", $("#wrapper").is(':visible'), {expires: 1, path:'/'});#}
-{#    });#}
-{#    });#}
-</script>
 
 </body>
 </html>

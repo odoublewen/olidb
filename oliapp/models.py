@@ -2,6 +2,7 @@ import datetime
 from oliapp import db
 from lib.postgres import to_query_term, make_weighted_document_column
 from sqlalchemy.sql import func, desc
+from sqlalchemy import UniqueConstraint
 from flask.ext.security import UserMixin, RoleMixin
 
 # class to hold gene_info file
@@ -70,16 +71,12 @@ class Experiment(db.Model):
                                 backref=db.backref('experiments', lazy='dynamic'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
+    __table_args__ = (
+        UniqueConstraint('name', 'user_id', name='_experimentname_userid_uc'),
+    )
+
     def __repr__(self):
         return '<%r>' % self.name
-
-    # TODO: add properties, etc
-    # @property
-    # def length(self):
-    #     return Experiment.designs()
-    #
-    # def __len__():
-    #     pass
 
 
 class Target(db.Model):
@@ -180,6 +177,7 @@ class Role(db.Model, RoleMixin):
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=False)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())

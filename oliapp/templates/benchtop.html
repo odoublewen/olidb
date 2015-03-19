@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% import "_pagination.html" as pg %}
+{% block title %}{{ current_user.email }}'s Benchtop{% endblock %}
+
+{% block content %}
+<h1>{{ current_user.name }}'s Benchtop</h1>
+
+<p>Your email: {{ current_user.email }}</p>
+<p>Your experiment: {{ g.experiment.name }}</p>
+
+
+{% endblock %}
