@@ -1,9 +1,9 @@
 import datetime
 from oliapp import db
-from lib.postgres import to_query_term, make_weighted_document_column
 from sqlalchemy.sql import func, desc
 from sqlalchemy import UniqueConstraint
 from flask.ext.security import UserMixin, RoleMixin
+from flask import abort
 
 # class to hold gene_info file
 class Gene(db.Model):
@@ -115,33 +115,7 @@ class Oligoset(db.Model):
 
 def search_oligosets(session, term):
 
-    term = to_query_term(term)
-
-    search_subquery = session.query(
-        Oligoset.id.label('oligoset_id'),
-        make_weighted_document_column(
-            [(Oligoset.name, 'A'),
-             (Target.symbol, 'A'),
-             (Target.namealts, 'A'),
-             (Target.namelong, 'B'),
-             (Oligoset.notes, 'B'),
-             (Oligoset.location, 'B')]).label('document')).join(Target).subquery()
-
-    search_query = session.query(
-        Oligoset.id,
-        Oligoset.tmid,
-        Oligoset.name,
-        Oligoset.date,
-        Target.symbol,
-        Target.namelong,
-        Target.namealts,
-        func.ts_rank(search_subquery.c.document, func.to_tsquery(term)))\
-        .join(Target)\
-        .join(search_subquery, Oligoset.id == search_subquery.c.oligoset_id)\
-        .filter(search_subquery.c.document.match(term))\
-        .order_by(desc(func.ts_rank(search_subquery.c.document,func.to_tsquery(term))))
-
-    return search_query.all()
+    return abort(404)
 
 
 class Oligo(db.Model):
