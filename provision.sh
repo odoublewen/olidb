@@ -19,6 +19,8 @@ su - vagrant -c 'createdb olidb'
 pip install -r /vagrant/requirements.txt
 
 su - vagrant -c "echo './scripts/reinitialize_database.sh
-./manage.py runserver --host 0.0.0.0 --reload --debug'" > /home/vagrant/.bash_history
+./manage.py runserver --host 0.0.0.0 --reload --debug
+PYTHONPATH=/vagrant ./scripts/import_oligos.py all
+' > /home/vagrant/.bash_history"
 
 echo "You've been provisioned"
