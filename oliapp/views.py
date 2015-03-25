@@ -2,9 +2,11 @@ from oliapp import app
 from oliapp.models import Oligoset, Target, Experiment, search_oligosets
 from oliapp import db
 from sqlalchemy import and_, or_
-from flask import request, send_from_directory, render_template, g, abort, jsonify
+from flask import request, send_from_directory, render_template, g, abort, jsonify, session
 # from flask import make_response, url_for, flash, redirect
 from flask.ext.security import login_required, current_user
+from flask.ext.login import user_logged_in
+from sqlalchemy.orm.exc import NoResultFound
 import flask_sijax
 
 @app.template_filter('isodate')
@@ -20,20 +22,43 @@ def index():
     return render_template("index.html", title='Hello world home')
 
 
-@app.route('/oligoset/detail/<int:oligosetid>')
-def oligoset_detail(oligosetid):
-    g.des = Oligoset.query.get_or_404(oligosetid)
-    return render_template("oligoset_detail.html", title='Oligoset detail')
+@app.route('/oligosets/detail/<taxatmid>')
+def oligoset_detail(taxatmid):
+    try:
+        taxa, tmid = taxatmid.split('-')
+        g.oligoset = Oligoset.query.join(Target).filter(Target.taxonomy == taxa).filter(Oligoset.tmid == int(tmid)).one()
+    except NoResultFound:
+        abort(404)
+    except ValueError:
+        abort(404)
+    return render_template("oligoset_detail.html")
+
+
+@user_logged_in.connect_via(app)
+def on_user_logged_in(sender, user):
+    session['benchtop_size'] = len(get_benchtop_expt(current_user.id).oligosets)
+
+
+def get_benchtop_expt(userid):
+    experiment = Experiment.query.filter(and_(Experiment.user_id == userid, Experiment.is_benchtop.is_(True))).first()
+    if experiment is None:
+        experiment = Experiment(name='My Benchtop', is_benchtop=True, user_id=userid)
+        db.session.add(g.experiment)
+        db.session.commit()
+    return experiment
+
 
 @flask_sijax.route(app, '/benchtop')
 @login_required
-def benchtop():
+def benchtop(page=1):
     g.active_page = 'benchtop'
-    g.experiment = Experiment.query.filter(and_(Experiment.user_id == current_user.id, Experiment.is_benchtop.is_(True))).first()
-    if g.experiment is None:
-        g.experiment = Experiment(name='My Benchtop', is_benchtop=True, user_id=current_user.id)
-        db.session.add(g.experiment)
-        db.session.commit()
+    g.experiment = get_benchtop_expt(current_user.id)
+    oligoset_list = [o.id for o in g.experiment.oligosets]
+
+    query = Oligoset.query.join(Target)
+    query = query.filter(Oligoset.id.in_(oligoset_list))
+
+    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
 
     return render_template('benchtop.html')
 
@@ -43,8 +68,12 @@ def benchtop():
 def oligosets(page):
 
     def to_benchtop(obj_response, id):
-        res = Oligoset.query.get_or_404(id)
-        obj_response.alert('Hi there ' + res.name)
+        oset = Oligoset.query.get(id)
+        exp = get_benchtop_expt(current_user.id)
+        exp.oligosets.append(oset)
+        db.session.add(exp)
+        db.session.commit()
+        session['benchtop_size'] += 1
     if g.sijax.is_sijax_request:
         g.sijax.register_callback('to_benchtop', to_benchtop)
         return g.sijax.process_request()

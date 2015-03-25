@@ -4,13 +4,13 @@
 
 
     <table class="table table-bordered table-condensed table-striped">
-    <tr><td>Oligoset name</td><td>{{ g.des.name }}</td></tr>
-    <tr><td>TM ID</td><td>{{ g.des.tmid }}</td></tr>
-    <tr><td>notes</td><td>{{ g.des.notes }}</td></tr>
-    <tr><td>design date</td><td>{{ g.des.date|isodate }}</td></tr>
-    <tr><td>target symbol</td><td>{{ g.des.target.symbol }}</td></tr>
-    <tr><td>target description</td><td>{{ g.des.target.namelong }}</td></tr>
-    <tr><td>target name alts</td><td>{{ g.des.target.namealts }}</td></tr>
+    <tr><td>name</td><td>{{ g.oligoset.name }}</td></tr>
+    <tr><td>id</td><td><nobr>{{ g.oligoset.target.taxonomy }}-{{g.oligoset.tmid }}</nobr></td></tr>
+    <tr><td>notes</td><td>{{ g.oligoset.notes }}</td></tr>
+    <tr><td>design date</td><td>{{ g.oligoset.date|isodate }}</td></tr>
+    <tr><td>target symbol</td><td>{{ g.oligoset.target.symbol }}</td></tr>
+    <tr><td>target description</td><td>{{ g.oligoset.target.namelong }}</td></tr>
+    <tr><td>target name alts</td><td>{{ g.oligoset.target.namealts }}</td></tr>
     </table>
 
     <h2>Oligo details</h2>
@@ -21,7 +21,7 @@
         <th>sequence</th>
         <th>order date</th>
     </tr>
-    {% for o in g.des.oligos %}
+    {% for o in g.oligoset.oligos %}
     <tr>
         <td>{{ o }}</td>
         <td>{{ o.oligoid }}</td>

@@ -18,6 +18,7 @@ su - vagrant -c 'createdb olidb'
 
 pip install -r /vagrant/requirements.txt
 
+# adding three commands to the bash history just for convenience
 su - vagrant -c "echo './scripts/reinitialize_database.sh
 ./manage.py runserver --host 0.0.0.0 --reload --debug
 PYTHONPATH=/vagrant ./scripts/import_oligos.py all
