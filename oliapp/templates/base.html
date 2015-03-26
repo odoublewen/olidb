@@ -42,7 +42,11 @@
                     <li{% if g.active_page == page %} class="active"{% endif %}><a href="{{ url_for(page) }}">{{ caption }}</a></li>
                 {% endfor %}
 
-                <li{% if g.active_page == 'benchtop' %} class="active"{% endif %}><a href="{{ url_for('benchtop') }}">My Benchtop ({{ session.benchtop_size }})</a></li>
+                <li{% if g.active_page == 'benchtop' %} class="active"{% endif %}>
+                    <a href="{{ url_for('benchtop') }}">My Benchtop
+                        {% if current_user.is_authenticated() %}({{ session.benchtop_size }}){% endif %}
+                    </a>
+                </li>
 
                 {% if current_user.is_authenticated() %}
 

@@ -6,6 +6,7 @@
     <table class="table table-bordered table-condensed table-striped">
     <tr><td>name</td><td>{{ g.oligoset.name }}</td></tr>
     <tr><td>id</td><td><nobr>{{ g.oligoset.target.taxonomy }}-{{g.oligoset.tmid }}</nobr></td></tr>
+    <tr><td>status</td><td>{% if g.oligoset.is_public %}public (world viewable){% else %}private (viewable only by registered users){% endif %}</td></tr>
     <tr><td>notes</td><td>{{ g.oligoset.notes }}</td></tr>
     <tr><td>design date</td><td>{{ g.oligoset.date|isodate }}</td></tr>
     <tr><td>target symbol</td><td>{{ g.oligoset.target.symbol }}</td></tr>
@@ -25,7 +26,7 @@
     <tr>
         <td>{{ o }}</td>
         <td>{{ o.oligoid }}</td>
-        <td>{{ o.sequence }}</td>
+        <td>{{ o.sequence|seqmask(g.oligoset.is_public) }}</td>
         <td>{{ o.orderdate|isodate }}</td>
     </tr>
     {% endfor %}

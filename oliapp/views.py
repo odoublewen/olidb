@@ -1,7 +1,7 @@
 from oliapp import app
 from oliapp.models import Oligoset, Target, Experiment, search_oligosets
 from oliapp import db
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, desc
 from flask import request, send_from_directory, render_template, g, abort, jsonify, session
 # from flask import make_response, url_for, flash, redirect
 from flask.ext.security import login_required, current_user
@@ -16,11 +16,19 @@ def _jinja2_filter_datetime(date, fmt=None):
     except AttributeError:
         return ''
 
+@app.template_filter('seqmask')
+def _mask_sequence(seq, is_public):
+    if current_user.is_authenticated() or is_public:
+        return seq
+    else:
+        return 'N' * len(seq)
+
 @app.route('/')
 @app.route('/index/')
 def index():
+    g.recentexp = Experiment.query.filter(Experiment.date != None).order_by(desc(Experiment.date)).limit(10)
+    g.recentoli = Oligoset.query.join(Target).filter(Oligoset.date != None).order_by(desc(Oligoset.date)).limit(10)
     return render_template("index.html", title='Hello world home')
-
 
 @app.route('/oligosets/detail/<taxatmid>')
 def oligoset_detail(taxatmid):
@@ -40,17 +48,19 @@ def on_user_logged_in(sender, user):
 
 
 def get_benchtop_expt(userid):
-    experiment = Experiment.query.filter(and_(Experiment.user_id == userid, Experiment.is_benchtop.is_(True))).first()
-    if experiment is None:
-        experiment = Experiment(name='My Benchtop', is_benchtop=True, user_id=userid)
-        db.session.add(g.experiment)
+    try:
+        experiment = Experiment.query.filter(and_(Experiment.user_id == userid, Experiment.is_benchtop.is_(True))).one()
+    except NoResultFound:
+        experiment = Experiment(name=current_user.name + "'s Benchtop", is_benchtop=True, user_id=userid)
+        db.session.add(experiment)
         db.session.commit()
     return experiment
 
 
 @flask_sijax.route(app, '/benchtop')
 @login_required
-def benchtop(page=1):
+def benchtop():
+
     g.active_page = 'benchtop'
     g.experiment = get_benchtop_expt(current_user.id)
     oligoset_list = [o.id for o in g.experiment.oligosets]
@@ -58,7 +68,7 @@ def benchtop(page=1):
     query = Oligoset.query.join(Target)
     query = query.filter(Oligoset.id.in_(oligoset_list))
 
-    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
+    g.rows = query.order_by(Target.taxonomy, Oligoset.name).all()
 
     return render_template('benchtop.html')
 
@@ -140,4 +150,6 @@ def site_search():
 def oligoset_create():
     g.active_page = 'design_create'
     return render_template('index.html')
+
+
 
