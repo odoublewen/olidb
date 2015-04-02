@@ -1,7 +1,7 @@
 Primer3 File - http://primer3.sourceforge.net
 P3_FILE_TYPE=settings
 
-P3_FILE_ID=primer3 config for outer flanking primers, strict
+P3_FILE_ID=primer3 config for outer flanking primers, relaxed
 
 PRIMER_TASK=generic
 PRIMER_PICK_INTERNAL_OLIGO=0

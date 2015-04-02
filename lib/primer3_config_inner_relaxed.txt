@@ -1,13 +1,13 @@
 Primer3 File - http://primer3.sourceforge.net
 P3_FILE_TYPE=settings
 
-P3_FILE_ID=primer3 config for inner taqman primers, strict
+P3_FILE_ID=primer3 config for inner taqman primers, relaxed
 
 PRIMER_TASK=generic
 PRIMER_PICK_INTERNAL_OLIGO=1
-PRIMER_PRODUCT_SIZE_RANGE=50-600
+PRIMER_PRODUCT_SIZE_RANGE=50-400
 PRIMER_PRODUCT_OPT_SIZE=66
-PRIMER_NUM_RETURN=200
+PRIMER_NUM_RETURN=100
 PRIMER_TM_FORMULA=1
 PRIMER_EXPLAIN_FLAG=1
 
