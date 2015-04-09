@@ -1,34 +1,23 @@
 #!/usr/bin/env python
 #
-
-import sys
 import argparse
 import logging
-from Bio import Entrez
-# from Bio import SeqIO
-from tempfile import TemporaryFile, NamedTemporaryFile
+from Bio import SeqIO
 from subprocess import Popen, PIPE
 from re import match, search
 import pandas as pd
-from collections import defaultdict
+import sys
 
-def temp_fasta(sequence):
-    fastahandle = NamedTemporaryFile(delete=False)
-    # SeqIO.write(sequence, fastahandle, 'fasta')
-    fastahandle.write('>temp\n' + sequence + '\n')
-    fastahandle.close()
-
-    return fastahandle.name
+log = logging.getLogger(__name__)
 
 
-def run_primer3(primer3_in, config_file):
+def run_primer3(primer3_in):
 
-    p = Popen(['primer3_core', '-p3_settings_file', config_file, '-strict_tags'], stdin=PIPE, stdout=PIPE, bufsize=1)
+    p = Popen(['primer3_core', '-strict_tags'], stdin=PIPE, stdout=PIPE, bufsize=1)
     primer3_out = p.communicate(input=primer3_in)[0]
 
-    # print primer3_out
     primers = []
-    explain = defaultdict(list)
+    explain = []
     seqid = ''
     for l in primer3_out.splitlines():
 
@@ -37,48 +26,56 @@ def run_primer3(primer3_in, config_file):
             seqid = seqidpatt.group(1)
             continue
 
-        explainpatt = search('EXPLAIN', l)
+        explainpatt = search('PRIMER_(LEFT|RIGHT|INTERNAL|PAIR)_EXPLAIN=(.+)', l)
         if explainpatt:
-            explain[seqid].append(l)
+            ptype = explainpatt.group(1)
+            for kv in explainpatt.group(2).split(','):
+                kvpatt = search('(.+) ([0-9]+)', kv.strip())
+                explain.append([seqid, ptype, kvpatt.group(1), kvpatt.group(2)])
             continue
 
         primerpatt = match('PRIMER_(LEFT|RIGHT|INTERNAL|PAIR)_([0-9]+)_?(.*)=(.+)', l)
         if primerpatt:
             pid = primerpatt.group(2)
-            end = primerpatt.group(1)
+            ptype = primerpatt.group(1)
             metric = primerpatt.group(3)
             if metric == '':
                 metric = 'COORDS'
             value = primerpatt.group(4)
-            primers.append([seqid, pid, end, metric, value])
+            primers.append([seqid, pid, ptype, metric, value])
             continue
 
     try:
-        primers = pd.DataFrame(primers, columns=['seqid', 'pid', 'end', 'metric', 'value'])
+        primers = pd.DataFrame(primers, columns=['seqid', 'pid', 'ptype', 'metric', 'value'])
     except ValueError:
         primers = None
+
+    try:
+        explain = pd.DataFrame(explain, columns=['seqid', 'ptype', 'metric', 'value'])
+    except ValueError:
+        explain = None
 
     return primers, explain
 
 
-def make_inner(seqid, seq, config_file):
+def taqman_primers(seqid, seq, p3settings):
 
     # inner taqman primers
     primer3_in = "SEQUENCE_ID=%s\n" % seqid
     primer3_in += "SEQUENCE_TEMPLATE=%s\n" % seq
     primer3_in += "SEQUENCE_INCLUDED_REGION=50,%d\n" % (len(seq)-100)
+    primer3_in += p3settings
     primer3_in += "=\n"
 
-    innerdf, innerexp = run_primer3(primer3_in, config_file=config_file)
+    innerdf, innerexp = run_primer3(primer3_in)
 
-    if innerdf is None:
-        raise RuntimeError(innerexp)
+    if innerdf is not None:
+        innerdf['ptype'] = 'TAQMAN_' + innerdf['ptype'].astype(str)
 
-    innerdf['end'] = 'TAQMAN_' + innerdf['end'].astype(str)
-    return innerdf
+    return innerdf, innerexp
 
 
-def make_outer(seqid, seq, config_file, p3coords):
+def preamp_primers(seqid, seq, p3settings, p3coords):
 
     # outer flanking primers
     primer3_in = ''
@@ -88,45 +85,60 @@ def make_outer(seqid, seq, config_file, p3coords):
         primer3_in += "SEQUENCE_ID=%s_____%s\n" % (seqid, index)
         primer3_in += "SEQUENCE_TEMPLATE=%s\n" % seq
         primer3_in += "SEQUENCE_TARGET=%d,%d\n" % (leftpos[0]+leftpos[1]-12, rightpos[0]-rightpos[1]+12)
+        primer3_in += p3settings
         primer3_in += "=\n"
 
-    outerdf, outerexp = run_primer3(primer3_in, config_file=config_file)
+    outerdf, outerexp = run_primer3(primer3_in)
 
-    if outerdf is None:
-        raise RuntimeError(outerexp)
+    if outerdf is not None:
+        outerdf['ptype'] = 'PREAMP_' + outerdf['ptype'].astype(str)
+        outerdf['pid2'] = outerdf['pid']
+        outerdf['seqid'], outerdf['pid'] = zip(*outerdf['seqid'].str.split('_____').tolist())
 
-    outerdf['end'] = 'PREAMP_' + outerdf['end'].astype(str)
-    outerdf['pid2'] = outerdf['pid']
-    outerdf['seqid'], outerdf['pid'] = zip(*outerdf['seqid'].str.split('_____').tolist())
-    return outerdf
+    if outerexp is not None:
+        outerexp['ptype'] = 'PREAMP_' + outerexp['ptype'].astype(str)
+        outerexp['seqid'].replace(to_replace=r'(.+)_____.*', value=r'\1', inplace=True, regex=True)
+
+    return outerdf, outerexp
 
 
-def make_5primer_set():
+def make_5primer_set(seqs, settings1, settings2):
 
-    # logging.basicConfig(format="%(levelname)s: %(message)s", level=loglevel)
+    primerlist = []
+    explainlist = []
+    for rec in seqs:
+        innerdf, innerexp = taqman_primers(rec.id, rec.seq, settings1)
+        primerlist.append(innerdf)
+        explainlist.append(innerexp)
 
-    seqid = 'gapdh'
-    seq = 'gcctcaagaccttgggctgggactggctgagcctggcgggaggcggggtccgagtcaccgcctgccgccgcgcccccggtttctataaattgagcccgcagcctcccgcttcgctctctgctcctcctgttcgacagtcagccgcatcttcttttgcgtcgccagccgagccacatcgctcagacaccatggggaaggtgaaggtcggagtcaacggatttggtcgtattgggcgcctggtcaccagggctgcttttaactctggtaaagtggatattgttgccatcaatgaccccttcattgacctcaactacatggtttacatgttccaatatgattccacccatggcaaattccatggcaccgtcaaggctgagaacgggaagcttgtcatcaatggaaatcccatcaccatcttccaggagcgagatccctccaaaatcaagtggggcgatgctggcgctgagtacgtcgtggagtccactggcgtcttcaccaccatggagaaggctggggctcatttgcaggggggagccaaaagggtcatcatctctgccccctctgctgatgcccccatgttcgtcatgggtgtgaaccatgagaagtatgacaacagcctcaagatcatcagcaatgcctcctgcaccaccaactgcttagcacccctggccaaggtcatccatgacaactttggtatcgtggaaggactcatgaccacagtccatgccatcactgccacccagaagactgtggatggcccctccgggaaactgtggcgtgatggccgcggggctctccagaacatcatccctgcctctactggcgctgccaaggctgtgggcaaggtcatccctgagctgaacgggaagctcactggcatggccttccgtgtccccactgccaacgtgtcagtggtggacctgacctgccgtctagaaaaacctgccaaatatgatgacatcaagaaggtggtgaagcaggcgtcggagggccccctcaagggcatcctgggctacactgagcaccaggtggtctcctctgacttcaacagcgacacccactcctccacctttgacgctggggctggcattgccctcaacgaccactttgtcaagctcatttcctggtatgacaacgaatttggctacagcaacagggtggtggacctcatggcccacatggcctccaaggagtaagacccctggaccaccagccccagcaagagcacaagaggaagagagagaccctcactgctggggagtccctgccacactcagtcccccaccacactgaatctcccctcctcacagttgccatgtagaccccttgaagaggggaggggcctagggagccgcaccttgtcatgtaccatcaataaagtaccctgtgctcaaccagttaaaaaaaaaaaaaaaaaaaaa'
+        if innerdf is not None:
+            log.info('%s: Found %d INNER primers sets' % (rec.id, innerdf.pid.nunique()))
+            # get the coordinates of each primer pair, so that we can target the flanking primers
+            p3coords = innerdf[innerdf.metric == 'COORDS'].pivot(index='pid', columns='ptype', values='value')
+            outerdf, outerexp = preamp_primers(rec.id, rec.seq, settings2, p3coords)
+            primerlist.append(outerdf)
+            explainlist.append(outerexp)
 
-    seqid = 'ACTB'
-    seq = 'ACCGCCGAGACCGCGTCCGCCCCGCGAGCACAGAGCCTCGCCTTTGCCGATCCGCCGCCCGTCCACACCCGCCGCCAGCTCACCATGGATGATGATATCGCCGCGCTCGTCGTCGACAACGGCTCCGGCATGTGCAAGGCCGGCTTCGCGGGCGACGATGCCCCCCGGGCCGTCTTCCCCTCCATCGTGGGGCGCCCCAGGCACCAGGGCGTGATGGTGGGCATGGGTCAGAAGGATTCCTATGTGGGCGACGAGGCCCAGAGCAAGAGAGGCATCCTCACCCTGAAGTACCCCATCGAGCACGGCATCGTCACCAACTGGGACGACATGGAGAAAATCTGGCACCACACCTTCTACAATGAGCTGCGTGTGGCTCCCGAGGAGCACCCCGTGCTGCTGACCGAGGCCCCCCTGAACCCCAAGGCCAACCGCGAGAAGATGACCCAGATCATGTTTGAGACCTTCAACACCCCAGCCATGTACGTTGCTATCCAGGCTGTGCTATCCCTGTACGCCTCTGGCCGTACCACTGGCATCGTGATGGACTCCGGTGACGGGGTCACCCACACTGTGCCCATCTACGAGGGGTATGCCCTCCCCCATGCCATCCTGCGTCTGGACCTGGCTGGCCGGGACCTGACTGACTACCTCATGAAGATCCTCACCGAGCGCGGCTACAGCTTCACCACCACGGCCGAGCGGGAAATCGTGCGTGACATTAAGGAGAAGCTGTGCTACGTCGCCCTGGACTTCGAGCAAGAGATGGCCACGGCTGCTTCCAGCTCCTCCCTGGAGAAGAGCTACGAGCTGCCTGACGGCCAGGTCATCACCATTGGCAATGAGCGGTTCCGCTGCCCTGAGGCACTCTTCCAGCCTTCCTTCCTGGGCATGGAGTCCTGTGGCATCCACGAAACTACCTTCAACTCCATCATGAAGTGTGACGTGGACATCCGCAAAGACCTGTACGCCAACACAGTGCTGTCTGGCGGCACCACCATGTACCCTGGCATTGCCGACAGGATGCAGAAGGAGATCACTGCCCTGGCACCCAGCACAATGAAGATCAAGATCATTGCTCCTCCTGAGCGCAAGTACTCCGTGTGGATCGGCGGCTCCATCCTGGCCTCGCTGTCCACCTTCCAGCAGATGTGGATCAGCAAGCAGGAGTATGACGAGTCCGGCCCCTCCATCGTCCACCGCAAATGCTTCTAGGCGGACTATGACTTAGTTGCGTTACACCCTTTCTTGACAAAACCTAACTTGCGCAGAAAACAAGATGAGATTGGCATGGCTTTATTTGTTTTTTTTGTTTTGTTTTGGTTTTTTTTTTTTTTTTGGCTTGACTCAGGATTTAAAAACTGGAACGGTGAAGGTGACAGCAGTCGGTTGGAGCGAGCATCCCCCAAAGTTCACAATGTGGCCGAGGACTTTGATTGCACATTGTTGTTTTTTTAATAGTCATTCCAAATATGAGATGCGTTGTTACAGGAAGTCCCTTGCCATCCTAAAAGCCACCCCACTTCTCTCTAAGGAGAATGGCCCAGTCCTCTCCCAAGTCCACACAGGGGAGGTGATAGCATTGCTTTCGTGTAAATTATGTAATGCAAAATTTTTTTAATCTTCGCCTTAATACTTTTTTATTTTGTTTTATTTTGAATGATGAGCCTTCGTGCCCCCCCTTCCCCCTTTTTTGTCCCCCAACTTGAGATGTATGAAGGCTTTTGGTCTCCCTGGGAGTGGGTGGAGGCAGCCAGGGCTTACCTGTACACTGACTTGAGACCAGTTGAATAAAAGTGCACACCTTAAAAATGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-
+            if outerdf is not None:
+                log.info('%s: Found %d OUTER primers sets' % (rec.id, outerdf.pid2.nunique()))
+                # primerlist.append(innerdf.append(outerdf))
+            else:
+                log.info('%s: Failed to find OUTER primers; try relaxing requirements.' % rec.id)
+        else:
+            log.info('%s: Failed to find INNER primers; try relaxing requirements.' % rec.id)
 
     try:
-        innerdf = make_inner(seqid, seq, 'primer3_config_inner.txt')
-    except RuntimeError:
-        innerdf = make_inner(seqid, seq, 'primer3_config_inner_relaxed.txt')
+        primerdf = pd.concat(primerlist)
+    except ValueError:
+        primerdf = None
 
-    # get the coordinates of each primer pair, so that we can target the flanking primers
-    p3coords = innerdf[innerdf.metric == 'COORDS'].pivot(index='pid', columns='end', values='value')
-    # config_file = 'primer3_config_outer.txt'
-    config_file = 'primer3_config_outer_relaxed.txt'
-    outerdf = make_outer(seqid, seq, config_file, p3coords)
+    try:
+        explaindf = pd.concat(explainlist)
+    except ValueError:
+        explaindf = None
 
-    # print innerdf
-    # print outerdf
-    df = innerdf.append(outerdf)
-    print df
+    return primerdf, explaindf
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -134,10 +146,27 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        "-f",
+        '--fasta',
+        help="fasta file",
+        required=True)
+    parser.add_argument(
+        "-s1",
+        '--settings1',
+        help="settings file for inner primers",
+        required=True)
+    parser.add_argument(
+        "-s2",
+        '--settings2',
+        help="settings file for outer primers",
+        required=True)
+
+    parser.add_argument(
         "-v",
         "--verbose",
         help="increase output verbosity",
         action="store_true")
+
     args = parser.parse_args()
 
     if args.verbose:
@@ -145,4 +174,14 @@ if __name__ == '__main__':
     else:
         loglevel = logging.INFO
 
-    make_5primer_set()
+    logging.basicConfig(format="%(levelname)s: %(message)s", level=loglevel)
+
+    seqobject = SeqIO.parse(args.fasta, format='fasta')
+
+    s1 = ''.join([l for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_'])
+    s2 = ''.join([l for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_'])
+
+    pdf, edf = make_5primer_set(seqobject, settings1=s1, settings2=s2)
+
+    print pdf
+    print edf
