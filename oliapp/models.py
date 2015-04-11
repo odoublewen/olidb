@@ -5,6 +5,19 @@ from sqlalchemy import UniqueConstraint
 from flask.ext.security import UserMixin, RoleMixin
 from flask import abort
 
+
+experiment_oligoset = db.Table(
+    'experiment_oligoset',
+    db.Column('experiment_id', db.Integer, db.ForeignKey('experiment.id')),
+    db.Column('oligoset_id', db.Integer, db.ForeignKey('oligoset.id')))
+
+
+benchtop_oligoset = db.Table(
+    'benchtop_oligoset',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('oligoset_id', db.Integer, db.ForeignKey('oligoset.id')))
+
+
 # class to hold gene_info file
 class Gene(db.Model):
     __tablename__ = 'gene'
@@ -53,27 +66,16 @@ class Accession(db.Model):
         return '<%r %r>' % self.symbol, self.rna_acc
 
 
-experiment_oligoset = db.Table(
-    'experiment_oligoset',
-    db.Column('experiment_id', db.Integer, db.ForeignKey('experiment.id')),
-    db.Column('oligoset_id', db.Integer, db.ForeignKey('oligoset.id')))
-
-
 class Experiment(db.Model):
     __tablename__ = 'experiment'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
+    name = db.Column(db.String(64), nullable=False, unique=True)
     description = db.Column(db.String(255), nullable=True)
     date = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now)
     is_public = db.Column(db.Boolean, nullable=False, default=False)
-    is_benchtop = db.Column(db.Boolean, nullable=False, default=False)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
                                 backref=db.backref('experiments', lazy='dynamic'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-
-    __table_args__ = (
-        UniqueConstraint('name', 'user_id', name='_experimentname_userid_uc'),
-    )
 
     def __repr__(self):
         return '<%r>' % self.name
@@ -158,5 +160,5 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Role', secondary=role_user,
                             backref=db.backref('users', lazy='dynamic'))
-    oligosets = db.relationship('Oligoset', backref='user')
+    oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
     experiments = db.relationship('Experiment', backref='user')

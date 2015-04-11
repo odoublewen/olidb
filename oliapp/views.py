@@ -1,5 +1,5 @@
 from oliapp import app
-from oliapp.models import Oligoset, Target, Experiment, search_oligosets
+from oliapp.models import Oligoset, Target, Experiment, User, search_oligosets
 from oliapp import db
 from sqlalchemy import and_, or_, desc
 from flask import request, send_from_directory, render_template, g, abort, jsonify, session
@@ -42,19 +42,9 @@ def oligoset_detail(taxatmid):
     return render_template("oligoset_detail.html")
 
 
-@user_logged_in.connect_via(app)
-def on_user_logged_in(sender, user):
-    session['benchtop_size'] = len(get_benchtop_expt(current_user.id).oligosets)
-
-
-def get_benchtop_expt(userid):
-    try:
-        experiment = Experiment.query.filter(and_(Experiment.user_id == userid, Experiment.is_benchtop.is_(True))).one()
-    except NoResultFound:
-        experiment = Experiment(name=current_user.name + "'s Benchtop", is_benchtop=True, user_id=userid)
-        db.session.add(experiment)
-        db.session.commit()
-    return experiment
+# @user_logged_in.connect_via(app)
+# def on_user_logged_in(sender, user):
+#     session['benchtop_size'] = len(current_user.oligosets)
 
 
 @flask_sijax.route(app, '/benchtop')
@@ -62,8 +52,7 @@ def get_benchtop_expt(userid):
 def benchtop():
 
     g.active_page = 'benchtop'
-    g.experiment = get_benchtop_expt(current_user.id)
-    oligoset_list = [o.id for o in g.experiment.oligosets]
+    oligoset_list = [o.id for o in current_user.oligosets]
 
     query = Oligoset.query.join(Target)
     query = query.filter(Oligoset.id.in_(oligoset_list))
@@ -79,11 +68,12 @@ def oligosets(page):
 
     def to_benchtop(obj_response, id):
         oset = Oligoset.query.get(id)
-        exp = get_benchtop_expt(current_user.id)
-        exp.oligosets.append(oset)
-        db.session.add(exp)
-        db.session.commit()
-        session['benchtop_size'] += 1
+        if oset not in current_user.oligosets:
+            current_user.oligosets.append(oset)
+            db.session.add(current_user)
+            db.session.commit()
+            obj_response.html("#benchtop_size", len(current_user.oligosets))
+
     if g.sijax.is_sijax_request:
         g.sijax.register_callback('to_benchtop', to_benchtop)
         return g.sijax.process_request()
@@ -108,7 +98,7 @@ def oligosets(page):
     if g.taxonomy:
         query = query.filter(Target.taxonomy == g.taxonomy)
 
-    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
+    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=500)
     g.active_page = 'oligosets'
     g.taxa = [q.taxa for q in db.session.query(Target.taxonomy.distinct().label("taxa")).order_by(Target.taxonomy).all()]
     return render_template('oligoset_browse.html')
