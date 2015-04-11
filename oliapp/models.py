@@ -69,8 +69,8 @@ class Accession(db.Model):
 class Experiment(db.Model):
     __tablename__ = 'experiment'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False, unique=True)
-    description = db.Column(db.String(255), nullable=True)
+    name = db.Column(db.String(128), nullable=False, unique=True)
+    description = db.Column(db.String(256), nullable=True)
     date = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now)
     is_public = db.Column(db.Boolean, nullable=False, default=False)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
@@ -137,6 +137,13 @@ class Oligo(db.Model):
         return self.tubename
 
 
+class Jobs(db.Model):
+    __tablenane__ = 'jobs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    rq_id = db.Column(db.Integer)
+
+
 role_user = db.Table(
     'role_user',
     db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
@@ -160,5 +167,6 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Role', secondary=role_user,
                             backref=db.backref('users', lazy='dynamic'))
-    oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
+    benchtop_oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
     experiments = db.relationship('Experiment', backref='user')
+    jobs = db.relationship('Jobs', backref='user')

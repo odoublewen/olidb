@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 apt-get update
-apt-get install -y git postgresql-9.3 postgresql-server-dev-9.3 ipython python-pip python-dev libcurl4-openssl-dev primer3 #build-essential
+apt-get install -y git postgresql-9.3 postgresql-server-dev-9.3 ipython python-pip python-dev libcurl4-openssl-dev primer3 redis-server #build-essential
 
 echo '# "local" is for Unix domain socket connections only
 local   all             all                                  trust
@@ -23,11 +23,5 @@ su - vagrant -c "echo './scripts/reinitialize_database.sh
 ./manage.py runserver --host 0.0.0.0 --reload --debug
 PYTHONPATH=/vagrant ./scripts/import_oligos.py all
 ' > /home/vagrant/.bash_history"
-
-# workaround for annoying EMBOSS bug: see https://www.biostars.org/p/102268/ or https://www.biostars.org/p/107641/
-#cd /usr/bin
-#mv eprimer3 eprimer3_
-#mv eprimer32 eprimer3
-#ln -s primer3_core primer32_core
 
 echo "You've been provisioned"

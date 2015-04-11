@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% import "_pagination.html" as pg %}
-{% block title %}Oligosets{% endblock %}
+{% block title %}
+    {% if g.experiment_num is not none %}
+        Exp #{{ g.experiment_num }}, {{ g.experiment_name }}
+    {% else %}
+        Browse Oligosets
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 
@@ -31,6 +37,17 @@
 
 <thead>
     <tr>
+        <th>
+            <div class="dropdown">
+                <i class="glyphicon glyphicon-menu-hamburger dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true"></i>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                    <li role="presentation"><a href="javascript://" onclick="Sijax.request('add_query_benchtop', [{{ g.pagination.query }}]);">Add all to benchtop</a></li>
+                    <li role="presentation"><a href="javascript://" onclick="Sijax.request('remove_query_benchtop', [{{ g.pagination.query }}]);">Remove all from benchtop</a></li>
+                    <li role="presentation"><a href="javascript://" onclick="Sijax.request('toggle_query_benchtop', [{{ g.pagination.query }}]);">Toggle all in benchtop</a></li>
+                  </ul>
+            </div>
+
+            </th>
         <th>id</th>
         <th>oligoset name</th>
         <th>gene symbol</th>
@@ -42,8 +59,21 @@
 <tbody>
 {% for i in g.pagination.items %}
     <tr>
-        <td><nobr>{% if current_user.is_authenticated() %}<a href="javascript://" onclick="Sijax.request('to_benchtop', [{{ i.id }}]);" title="add {{ i.target.taxonomy}}-{{ i.tmid }} to benchtop"><i class="glyphicon glyphicon-plus-sign"></i></a>{% endif %}&nbsp;
-        <a href="{{ url_for('oligoset_detail', taxatmid=[i.target.taxonomy, i.tmid]|join('-')) }}" title="view details of {{ i.target.taxonomy}}-{{ i.tmid }}">{{ i.target.taxonomy}}-{{ i.tmid }}</a></nobr></td>
+        <td>
+            {% if current_user.is_authenticated() %}
+                <a href="javascript://" onclick="Sijax.request('oligoset_benchtop', [{{ i.id }}]);" title="{{ i.target.taxonomy}}-{{ i.tmid }} on your benchtop" class="nounderline">
+                    {% if i in current_user.benchtop_oligosets %}
+                        <i id="oligoset{{ i.id }}" class="glyphicon glyphicon-check"></i>
+                    {% else %}
+                        <i id="oligoset{{ i.id }}" class="glyphicon glyphicon-unchecked"></i>
+                    {% endif %}
+                </a>
+            {% endif %}
+        </td>
+        <td>
+            <nobr>
+            <a href="{{ url_for('oligoset_detail', taxatmid=[i.target.taxonomy, i.tmid]|join('-')) }}" title="view details of {{ i.target.taxonomy}}-{{ i.tmid }}">{{ i.target.taxonomy}}-{{ i.tmid }}</a>
+            </nobr></td>
         <td>{{ i.name }}</td>
         <td>{{ i.target.symbol }}</td>
         <td>{{ i.target.namelong }}</td>

@@ -3,6 +3,20 @@
 
 <head>
     <title>{% block title %}{% endblock %}</title>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+
+            <div class="alert alert-dismissible alert-info">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                    {{ message }}
+            </div>
+
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     {% block meta %}{% endblock %}
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
@@ -44,7 +58,7 @@
 
                 <li{% if g.active_page == 'benchtop' %} class="active"{% endif %}>
                     <a href="{{ url_for('benchtop') }}">My Benchtop
-                        {% if current_user.is_authenticated() %}<span class="badge" id="benchtop_size">{{ current_user.oligosets | length }}</span>{% endif %}
+                        {% if current_user.is_authenticated() %}<span class="badge" id="benchtop_size_badge">{{ current_user.benchtop_oligosets | length }}</span>{% endif %}
                     </a>
                 </li>
 

@@ -1,13 +1,40 @@
 from oliapp import app
 from oliapp.models import Oligoset, Target, Experiment, User, search_oligosets
+from oliapp.forms import ExperimentForm
 from oliapp import db
 from sqlalchemy import and_, or_, desc
-from flask import request, send_from_directory, render_template, g, abort, jsonify, session
+from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash
 # from flask import make_response, url_for, flash, redirect
 from flask.ext.security import login_required, current_user
 from flask.ext.login import user_logged_in
-from sqlalchemy.orm.exc import NoResultFound
 import flask_sijax
+from sqlalchemy.orm.exc import NoResultFound
+from redis import Redis
+from rq import Queue
+import lib
+
+q = Queue(connection=Redis())
+
+
+class SijaxHandler(object):
+
+    @staticmethod
+    def oligoset_benchtop(obj_response, id):
+        oset = Oligoset.query.get(id)
+        if oset in current_user.benchtop_oligosets:
+            current_user.benchtop_oligosets.remove(oset)
+            db.session.add(current_user)
+            db.session.commit()
+            obj_response.html("#benchtop_size_badge", len(current_user.benchtop_oligosets))
+            obj_response.html("#benchtop_size_h3", len(current_user.benchtop_oligosets))
+            obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-unchecked');")
+        else:
+            current_user.benchtop_oligosets.append(oset)
+            db.session.add(current_user)
+            db.session.commit()
+            obj_response.html("#benchtop_size_badge", len(current_user.benchtop_oligosets))
+            obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-check');")
+
 
 @app.template_filter('isodate')
 def _jinja2_filter_datetime(date, fmt=None):
@@ -42,40 +69,44 @@ def oligoset_detail(taxatmid):
     return render_template("oligoset_detail.html")
 
 
-# @user_logged_in.connect_via(app)
-# def on_user_logged_in(sender, user):
-#     session['benchtop_size'] = len(current_user.oligosets)
-
-
 @flask_sijax.route(app, '/benchtop')
 @login_required
 def benchtop():
 
+    if g.sijax.is_sijax_request:
+        g.sijax.register_object(SijaxHandler)
+        return g.sijax.process_request()
+
+    form = ExperimentForm(request.form)
+    if request.method == 'POST': # and form.validate():
+        exp = Experiment(name=form.name.data, description=form.description.data, is_public=form.is_public.data,
+                         user_id=current_user.id, oligosets=current_user.benchtop_oligosets)
+        db.session.add(exp)
+        current_user.benchtop_oligosets = []
+        db.session.add(current_user)
+        db.session.commit()
+
+        flash('Saved Experiment')
+
     g.active_page = 'benchtop'
-    oligoset_list = [o.id for o in current_user.oligosets]
+    oligoset_list = [o.id for o in current_user.benchtop_oligosets]
 
     query = Oligoset.query.join(Target)
     query = query.filter(Oligoset.id.in_(oligoset_list))
 
-    g.rows = query.order_by(Target.taxonomy, Oligoset.name).all()
+    g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
+    g.myexperiments = current_user.experiments
 
-    return render_template('benchtop.html')
+    form.saveas.choices = [(None, 'New Experiment')] + [(e.id, e.name) for e in current_user.experiments]
+    return render_template('benchtop.html', form=form)
 
 
 @flask_sijax.route(app, '/oligosets', defaults={'page': 1})
 @flask_sijax.route(app, '/oligosets/page/<int:page>')
 def oligosets(page):
 
-    def to_benchtop(obj_response, id):
-        oset = Oligoset.query.get(id)
-        if oset not in current_user.oligosets:
-            current_user.oligosets.append(oset)
-            db.session.add(current_user)
-            db.session.commit()
-            obj_response.html("#benchtop_size", len(current_user.oligosets))
-
     if g.sijax.is_sijax_request:
-        g.sijax.register_callback('to_benchtop', to_benchtop)
+        g.sijax.register_object(SijaxHandler)
         return g.sijax.process_request()
 
     g.experiment_num = request.args.get('exp')
