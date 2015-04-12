@@ -9,7 +9,7 @@
     <div class="row-fluid">
         <div class="col-md-8">
         {% if current_user.benchtop_oligosets %}
-        <h3><span id="benchtop_size_h3">{{ current_user.benchtop_oligosets | length }}</span> oligosets on your benchtop
+        <h3><span class="benchtop_size">{{ current_user.benchtop_oligosets | length }}</span> oligosets on your benchtop
             <a class="btn btn-info btn-sm" data-toggle="collapse" href="#experiment_form" aria-expanded="false" aria-controls="collapseExample">
                 Save <i class="glyphicon glyphicon-triangle-bottom"></i>
             </a>

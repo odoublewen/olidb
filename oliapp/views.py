@@ -19,21 +19,27 @@ q = Queue(connection=Redis())
 class SijaxHandler(object):
 
     @staticmethod
-    def oligoset_benchtop(obj_response, id):
+    def oligoset_benchtop(obj_response, id, action='toggle'):
         oset = Oligoset.query.get(id)
         if oset in current_user.benchtop_oligosets:
-            current_user.benchtop_oligosets.remove(oset)
-            db.session.add(current_user)
-            db.session.commit()
-            obj_response.html("#benchtop_size_badge", len(current_user.benchtop_oligosets))
-            obj_response.html("#benchtop_size_h3", len(current_user.benchtop_oligosets))
-            obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-unchecked');")
+            if action in ['toggle', 'remove']:
+                current_user.benchtop_oligosets.remove(oset)
+                db.session.add(current_user)
+                db.session.commit()
+                obj_response.html(".benchtop_size", len(current_user.benchtop_oligosets))
+                obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-unchecked');")
         else:
-            current_user.benchtop_oligosets.append(oset)
-            db.session.add(current_user)
-            db.session.commit()
-            obj_response.html("#benchtop_size_badge", len(current_user.benchtop_oligosets))
-            obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-check');")
+            if action in ['toggle', 'add']:
+                current_user.benchtop_oligosets.append(oset)
+                db.session.add(current_user)
+                db.session.commit()
+                obj_response.html(".benchtop_size", len(current_user.benchtop_oligosets))
+                obj_response.script("$('#oligoset" + str(id) + "').removeClass().addClass('glyphicon glyphicon-check');")
+
+    @staticmethod
+    def query_benchtop(obj_response, ids, action='toggle'):
+        for id in ids:
+            SijaxHandler.oligoset_benchtop(obj_response, id, action=action)
 
 
 @app.template_filter('isodate')
@@ -113,6 +119,11 @@ def oligosets(page):
     g.term = request.args.get('term')
     g.taxonomy = request.args.get('taxonomy')
 
+    # try:
+    #     g.perpage = int(request.args.get('perpage'))
+    # except (ValueError, TypeError):
+    #     g.perpage = 100
+
     query = Oligoset.query.join(Target)
 
     if g.experiment_num:
@@ -129,7 +140,8 @@ def oligosets(page):
     if g.taxonomy:
         query = query.filter(Target.taxonomy == g.taxonomy)
 
-    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=500)
+    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
+    g.itemids = [i.id for i in g.pagination.items]
     g.active_page = 'oligosets'
     g.taxa = [q.taxa for q in db.session.query(Target.taxonomy.distinct().label("taxa")).order_by(Target.taxonomy).all()]
     return render_template('oligoset_browse.html')
@@ -143,7 +155,7 @@ def experiments(page):
     g.term = request.args.get('term')
     g.mine = request.args.get('mine')
 
-    query = Experiment.query #.filter(Experiment.is_public is True)
+    query = Experiment.query.outerjoin(User) #.filter(Experiment.is_public is True)
 
     if g.term:
         for term in g.term.split(' '):
