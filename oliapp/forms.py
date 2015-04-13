@@ -4,6 +4,6 @@ from wtforms.validators import DataRequired, length
 
 class ExperimentForm(Form):
     saveas = SelectField('Save As')
-    name = StringField('Name', validators=[DataRequired(), length(max=64)])
-    description = StringField('Description', validators=[DataRequired(), length(max=255)])
+    name = StringField('Name', validators=[DataRequired(), length(max=128)])
+    description = StringField('Description', validators=[DataRequired(), length(max=256)])
     is_public = BooleanField('Make Public', default=False)

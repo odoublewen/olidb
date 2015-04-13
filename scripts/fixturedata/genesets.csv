@@ -1,0 +1,40 @@
+"GS_ID","GS_NAME","GS_DATE","GS_COUNT","FINAL","FOLDER","GS_NOTES"
+"Snyder-Cappione","Snyder-Cappione","11-SEP-09",13,NA,"main",NA
+"Verhaeghe-1","Catherine - small assay","06-MAY-09",2,NA,"main",NA
+"TH2LOW","Th2 Low Asthma targets","12-MAY-09",81,NA,"main",NA
+"FahyPNSPaper","","21-JUN-10",9,NA,"main",NA
+"Host2","Host Genes 2","31-AUG-11",222,NA,"Human",NA
+"MASTPAXgene","MAST PAXgene","03-JUN-14",14,NA,"Nirav",NA
+"LK Sarc v2","","24-SEP-14",8,NA,"Eli",NA
+"MusPanel","Mouse Testing Panel","03-JUN-11",24,NA,"Other",NA
+"sarcoidosis2","","09-DEC-10",15,NA,"main",NA
+"Hu-Sputum","Human Sputum (MTB infection)","12-JAN-11",68,NA,"Human",NA
+"Biopsy_Cytokines_Interim","Biopsy_Cytokines_Interim","04-MAY-11",46,NA,"Nirav",NA
+"LCM mRNA","LCM mRNA Fluidigm Aug 2011","09-AUG-11",96,NA,"Nirav",NA
+"EpiAntagomir","","23-AUG-11",32,NA,"main",NA
+"Ostrin2","","30-SEP-11",27,NA,"main",NA
+"Eicosanoid5genes","the 5 main genes","30-SEP-11",10,NA,"main",NA
+"cancer","cancer set","17-DEC-12",96,NA,"Human",NA
+"Truc 2","2nd gene set","30-APR-12",40,NA,"Other",NA
+"EdAugust6th","","06-AUG-12",8,NA,"Eli",NA
+"ee","elid","08-AUG-12",4,NA,"Eli",NA
+"SARCV1test","SARCV1testplate","18-MAR-13",46,NA,"Eli",NA
+"NYCO","NYCOMED","17-JUN-13",12,NA,"Eli",NA
+"MTB-Host","MTB Host Interaction","25-JAN-10",48,NA,"MTB",NA
+"Host-MTB-f","Host-MTB-final","26-JAN-10",48,NA,"MTB",NA
+"Human TMs","","03-FEB-10",10,NA,"MTB",NA
+"Eicosanoid Woodruff/Fahy","Eicosanoid Woodruff/Fahy","03-MAR-10",28,NA,"Lydia",NA
+"Hq1","query1","17-DEC-10",112,NA,"Other",NA
+"avb8 sputum","pfizer avb8 il17 sputum","17-OCT-13",19,NA,"Nirav",NA
+"LCM Sm / Epi Rerun","LCM Sm / Epi Rerun","07-OCT-10",85,NA,"Jeff",NA
+"Host Human TM remake","Host Human TM remake","23-AUG-13",36,NA,"tran",NA
+"NYC","nycomed for grant","21-APR-14",26,NA,"michael",NA
+"LK Sarcoid Grant","","23-SEP-14",7,NA,"Eli",NA
+"C1","Cellecta 1","14-DEC-09",5,NA,"MTB",NA
+"PW","Prescott Request","26-NOV-08",21,NA,"UCSF",NA
+"Eicosanoid","Eicosanoid Woodruff/Fahy","03-MAR-10",67,NA,"Lydia",NA
+"problems_h","Potential problem human designs","24-MAR-10",98,NA,"main",NA
+"problems_m","Potential problem mouse designs","24-MAR-10",17,NA,"main",NA
+"Th2Typing","","05-OCT-10",8,NA,"main",NA
+"TH2","TH2 Typing","08-JUL-14",8,NA,"Eli",NA
+"LCM Muscle / Epi","","02-SEP-10",81,NA,"Jeff",NA

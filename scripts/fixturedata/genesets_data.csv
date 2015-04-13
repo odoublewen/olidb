@@ -1,0 +1,281 @@
+"GS_ID","TUBENAME","HOUSEKEEPING"
+"Hq1","HIF1",0
+"Hq1","IFNG",0
+"Hq1","IFNGRA",0
+"Hq1","IGF1L",0
+"Hq1","IGFR1R",0
+"Hq1","IL10",0
+"Hq1","IL11",0
+"Hq1","IL12A",0
+"Hq1","IL12B",0
+"Hq1","IL12R",0
+"Hq1","IL17",0
+"Hq1","IL18",0
+"Hq1","IL8",0
+"Hq1","RANTES",0
+"Hq1","STAT1a",0
+"Hq1","STAT4",0
+"Hq1","STAT5",0
+"Hq1","STAT6",0
+"Hu-Sputum","cox2",0
+"Hu-Sputum","EGF",0
+"Hu-Sputum","EGFR",0
+"Hu-Sputum","IFNG",0
+"Hu-Sputum","IFNGR",0
+"Hu-Sputum","IGF1",0
+"Hu-Sputum","IGFR1R",0
+"Hu-Sputum","IL10",0
+"Hu-Sputum","IL12A",0
+"Hu-Sputum","IL12B",0
+"Hu-Sputum","IL12R",0
+"Hu-Sputum","IL17",0
+"Hu-Sputum","IL18",0
+"Hu-Sputum","IL8",0
+"Hu-Sputum","RANTES",0
+"Hu-Sputum","STAT1a",0
+"Hu-Sputum","STAT4",0
+"Biopsy_Cytokines_Interim","EEF1A1",0
+"Biopsy_Cytokines_Interim","GAPDH",0
+"Biopsy_Cytokines_Interim","IFNG",0
+"Biopsy_Cytokines_Interim","IFNGRA",0
+"Biopsy_Cytokines_Interim","IL10",0
+"Biopsy_Cytokines_Interim","IL10ra",0
+"Biopsy_Cytokines_Interim","IL12A",0
+"Biopsy_Cytokines_Interim","IL12R",0
+"Biopsy_Cytokines_Interim","IL13ra1",0
+"Biopsy_Cytokines_Interim","IL13ra2",0
+"Biopsy_Cytokines_Interim","IL17",0
+"Biopsy_Cytokines_Interim","IL18",0
+"Biopsy_Cytokines_Interim","IL4",0
+"Biopsy_Cytokines_Interim","IL5",0
+"Biopsy_Cytokines_Interim","IL8",0
+"Biopsy_Cytokines_Interim","IL9 (b)",0
+"Biopsy_Cytokines_Interim","MIP3A",0
+"Biopsy_Cytokines_Interim","PPIA",0
+"Biopsy_Cytokines_Interim","Ubiquitin",0
+"MusPanel","M-GAPDH",0
+"LCM mRNA","CMA1",0
+"LCM mRNA","EEF1A1",0
+"LCM mRNA","IL13ra1",0
+"LCM mRNA","IL13ra2",0
+"LCM mRNA","IL17",0
+"LCM mRNA","IL4",0
+"LCM mRNA","IL5",0
+"LCM mRNA","IL8",0
+"LCM mRNA","IL9 (b)",0
+"LCM mRNA","IL9ra",0
+"LCM mRNA","PPIA",0
+"LCM mRNA","RANTES",0
+"LCM mRNA","SDF1b",0
+"LCM mRNA","Ubiquitin",0
+"EpiAntagomir","MUC5ac2",0
+"problems_h","IFNA-R2",0
+"Th2Typing","EEF1A1",0
+"Th2Typing","PPIA",0
+"problems_h","MUC5",0
+"problems_h","MUC5ac2",0
+"problems_h","MUC5b",0
+"problems_h","OCTN1",0
+"problems_m","M-GAPDH",0
+"EpiAntagomir","MUC5b",0
+"EpiAntagomir","EEF1A1",0
+"EpiAntagomir","PPIA",0
+"Host2","CathepB",0
+"Host2","CathepG",0
+"Host2","CathepsC",0
+"Host2","cox2",0
+"Host2","EEF1A1",0
+"Host2","EGF",0
+"Host2","EGFR",0
+"Host2","GAPDH",0
+"Host2","GRANZYME A",0
+"Host2","HIF1",0
+"Host2","IFNG",0
+"Host2","IFNGR",0
+"Host2","IGF1",0
+"Host2","IGFR1R",0
+"Host2","IL10",0
+"Host2","IL12A",0
+"Host2","IL12B",0
+"Host2","IL12R",0
+"Host2","IL17",0
+"Host2","IL4",0
+"Host2","IL8",0
+"Host2","IL8RA",0
+"Host2","IL8RB",0
+"Host2","Lag2",0
+"Host2","PPIA",0
+"Host2","RANTES",0
+"Host2","STAT1a",0
+"Host2","STAT1b",0
+"Host2","STAT4",0
+"Host2","STAT6",0
+"Host2","TCF1",0
+"PW","IL13",0
+"PW","IL4",0
+"PW","IL5",0
+"PW","MIP3A",0
+"PW","MUC5ac2",0
+"PW","MUC5b",0
+"TH2LOW","EGF",0
+"TH2LOW","EGFR",0
+"TH2LOW","IFNG",0
+"TH2LOW","IGF1L",0
+"TH2LOW","igfr",0
+"TH2LOW","IL12A",0
+"TH2LOW","IL13",0
+"TH2LOW","IL4",0
+"TH2LOW","IL5",0
+"TH2LOW","MUC5ac2",0
+"TH2LOW","MUC5b",0
+"C1","M-GAPDH",0
+"C1","M-TP53",0
+"MTB-Host","ENA78",0
+"MTB-Host","GAPDH",0
+"MTB-Host","IFNG",0
+"MTB-Host","IFNGR",0
+"MTB-Host","IL10",0
+"MTB-Host","IL12A",0
+"MTB-Host","IL12B",0
+"MTB-Host","IL12R",0
+"MTB-Host","IL13ra1",0
+"MTB-Host","IL17",0
+"MTB-Host","IL4",0
+"MTB-Host","IL5",0
+"MTB-Host","IL8",0
+"MTB-Host","IL8RA",0
+"MTB-Host","IL8RB",0
+"MTB-Host","IL9",0
+"MTB-Host","MIP3B",0
+"MTB-Host","PPIA",0
+"MTB-Host","RANTES",0
+"MTB-Host","Ubiquitin",0
+"Host-MTB-f","ENA78",0
+"Host-MTB-f","GAPDH",0
+"Host-MTB-f","IFNG",0
+"Host-MTB-f","IFNGR",0
+"Host-MTB-f","IL10",0
+"Host-MTB-f","IL12A",0
+"Host-MTB-f","IL12B",0
+"Host-MTB-f","IL12R",0
+"Host-MTB-f","IL13ra1",0
+"Host-MTB-f","IL17",0
+"Host-MTB-f","IL4",0
+"Host-MTB-f","IL5",0
+"Host-MTB-f","IL8",0
+"Host-MTB-f","IL8RA",0
+"Host-MTB-f","IL8RB",0
+"Host-MTB-f","IL9",0
+"Eicosanoid","PPIA",0
+"Host-MTB-f","MIP3B",0
+"Host-MTB-f","PPIA",0
+"Host-MTB-f","RANTES",0
+"Host-MTB-f","Ubiquitin",0
+"Host-MTB-f","EEF1A1",0
+"Host-MTB-f","HIF1",0
+"Human TMs","EEF1A1",0
+"Human TMs","GAPDH",0
+"Human TMs","IL18",0
+"Human TMs","PPIA",0
+"Human TMs","Ubiquitin",0
+"Eicosanoid","EEF1A1",0
+"Eicosanoid Woodruff/Fahy","EEF1A1",0
+"Eicosanoid Woodruff/Fahy","PPIA",0
+"Eicosanoid","IL13",0
+"Eicosanoid","IFNG",0
+"Eicosanoid","IL11",0
+"Eicosanoid","IL4",0
+"Eicosanoid","IL5",0
+"Eicosanoid","IL9",0
+"Eicosanoid","MUC5ac2",0
+"Eicosanoid","MUC5b",0
+"FahyPNSPaper","COL1A1",0
+"Verhaeghe-1","MUC5",0
+"Snyder-Cappione","IL13",0
+"Snyder-Cappione","IFNG",0
+"Snyder-Cappione","IL10",0
+"Snyder-Cappione","IL17",0
+"Snyder-Cappione","IL4",0
+"TH2LOW","EEF1A1",0
+"TH2LOW","PPIA",0
+"TH2LOW","Ubiquitin",0
+"Snyder-Cappione","IL5",0
+"LCM Muscle / Epi","EEF1A1",0
+"LCM Muscle / Epi","IL17",0
+"LCM Muscle / Epi","IL5",0
+"LCM Muscle / Epi","IL8",0
+"LCM Muscle / Epi","MUC5ac2",0
+"LCM Muscle / Epi","MUC5b",0
+"LCM Muscle / Epi","PPIA",0
+"LCM Muscle / Epi","RANTES",0
+"LCM Muscle / Epi","T1/ST2",0
+"LCM Sm / Epi Rerun","EEF1A1",0
+"LCM Sm / Epi Rerun","IL17",0
+"LCM Sm / Epi Rerun","IL5",0
+"LCM Sm / Epi Rerun","IL8",0
+"LCM Sm / Epi Rerun","MUC5ac2",0
+"LCM Sm / Epi Rerun","MUC5b",0
+"LCM Sm / Epi Rerun","PPIA",0
+"LCM Sm / Epi Rerun","RANTES",0
+"LCM Sm / Epi Rerun","T1/ST2",0
+"LCM Sm / Epi Rerun","Ubiquitin",0
+"sarcoidosis2","Ubiquitin",0
+"Hq1","cox2",0
+"Hq1","EGF",0
+"Hq1","EGFR",0
+"Hq1","EGR1",0
+"Ostrin2","EEF1A1",0
+"Ostrin2","MUC5ac2",0
+"Ostrin2","MUC5b",0
+"Ostrin2","PPIA",0
+"Eicosanoid5genes","EEF1A1",0
+"Eicosanoid5genes","PPIA",0
+"Truc 2","M-GAPDH",0
+"Truc 2","M-MMP12",0
+"EdAugust6th","EEF1A1",0
+"EdAugust6th","GAPDH",0
+"EdAugust6th","MUC5ac2",0
+"ee","MUC5b",0
+"cancer","COL1A1",0
+"cancer","cox2",0
+"cancer","CSF1R",0
+"cancer","CXCR4",0
+"cancer","EEF1A1",0
+"cancer","EGFR",0
+"cancer","GAPDH",0
+"cancer","NFKB",0
+"cancer","PPIA",0
+"SARCV1test","IL15",0
+"SARCV1test","IL18R",0
+"NYCO","EEF1A1",0
+"NYCO","EGF",0
+"NYCO","MUC5",0
+"NYCO","MUC5b",0
+"NYCO","PPIA",0
+"NYC","EEF1A1",0
+"NYC","EGF",0
+"NYC","EGFR",0
+"NYC","MUC5",0
+"SARCV1test","IFNG",0
+"SARCV1test","IL17",0
+"SARCV1test","IL4",0
+"SARCV1test","STAT6",0
+"Host Human TM remake","GRANZYME A",0
+"Host Human TM remake","IL12B",0
+"Host Human TM remake","STAT1a",0
+"avb8 sputum","CCR3",0
+"avb8 sputum","GAPDH",0
+"avb8 sputum","IL13",0
+"avb8 sputum","IL17",0
+"avb8 sputum","IL4",0
+"avb8 sputum","IL5",0
+"avb8 sputum","MIP3A",0
+"avb8 sputum","PPIA",0
+"NYC","MUC5b",0
+"NYC","PPIA",0
+"MASTPAXgene","Ubiquitin",0
+"TH2","EEF1A1",0
+"TH2","PPIA",0
+"LK Sarcoid Grant","GAPDH",0
+"LK Sarc v2","GAPDH",0
+"LK Sarc v2","PPIA",0

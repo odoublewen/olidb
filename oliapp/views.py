@@ -84,15 +84,26 @@ def benchtop():
         return g.sijax.process_request()
 
     form = ExperimentForm(request.form)
-    if request.method == 'POST': # and form.validate():
-        exp = Experiment(name=form.name.data, description=form.description.data, is_public=form.is_public.data,
-                         user_id=current_user.id, oligosets=current_user.benchtop_oligosets)
+    form.saveas.choices = [('NewExperiment', 'New Experiment')] + [(str(e.id), e.name) for e in current_user.experiments]
+
+    if form.validate_on_submit():
+        if form.saveas.data == "NewExperiment":
+            exp = Experiment(name=form.name.data, description=form.description.data, is_public=form.is_public.data,
+                             user_id=current_user.id, oligosets=current_user.benchtop_oligosets)
+        else:
+            exp = Experiment.query.get(int(form.saveas.data))
+            print exp
+            exp.oligosets = current_user.benchtop_oligosets
+            if form.name.data != '':
+                exp.name = form.name.data
+            if form.description.data != '':
+                exp.description = form.description.data
+
         db.session.add(exp)
         current_user.benchtop_oligosets = []
         db.session.add(current_user)
         db.session.commit()
-
-        flash('Saved Experiment')
+        flash('Your benchtop was saved as %s' % exp.name)
 
     g.active_page = 'benchtop'
     oligoset_list = [o.id for o in current_user.benchtop_oligosets]
@@ -103,7 +114,6 @@ def benchtop():
     g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
     g.myexperiments = current_user.experiments
 
-    form.saveas.choices = [(None, 'New Experiment')] + [(e.id, e.name) for e in current_user.experiments]
     return render_template('benchtop.html', form=form)
 
 
