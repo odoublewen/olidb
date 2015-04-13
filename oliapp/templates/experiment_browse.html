@@ -39,7 +39,7 @@
                         <td><a href="{{ url_for('oligoset_browse', exp=i.id) }}">{{ i.id }}</a></td>
                         <td>{{ i.name }}</td>
                         <td>{{ i.description }}</td>
-                        <td>{{ i.user.name }}</td>
+                        <td>{{ i.oliuser.name }}</td>
                         <td><nobr>{{ i.date | isodate }}</nobr></td>
                         <td>{{ i.oligosets|length }}</td>
                     </tr>

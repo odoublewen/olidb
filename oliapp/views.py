@@ -1,5 +1,5 @@
 from oliapp import app
-from oliapp.models import Oligoset, Target, Experiment, User, search_oligosets
+from oliapp.models import Oligoset, Target, Experiment, OliUser, search_oligosets
 from oliapp.forms import ExperimentForm, SequenceForm
 from oliapp import db
 from sqlalchemy import and_, or_, desc
@@ -9,7 +9,7 @@ import flask_sijax
 from sqlalchemy.orm.exc import NoResultFound
 from redis import Redis
 from rq import Queue
-from lib import run_primer3
+from lib.run_primer3 import make_5primer_set
 from Bio import SeqIO
 import cStringIO
 
@@ -165,7 +165,7 @@ def experiment_browse(page):
     g.term = request.args.get('term')
     g.mine = request.args.get('mine')
 
-    query = Experiment.query.outerjoin(User) #.filter(Experiment.is_public is True)
+    query = Experiment.query.outerjoin(OliUser) #.filter(Experiment.is_public is True)
 
     if g.term:
         for term in g.term.split(' '):
@@ -195,17 +195,26 @@ def oligoset_design():
 
     form = SequenceForm(request.form)
 
-    if form.validate_on_submit():
     # if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
 
         seqhandle = cStringIO.StringIO(form.fasta_sequences.data)
         seqobject = SeqIO.parse(seqhandle, format='fasta')
-        run_primer3.make_5primer_set(seqs=seqobject,
-                                     settings1=form.primer3_config_taqman.data,
-                                     settings2=form.primer3_config_preamp.data)
+
+        s1 = form.primer3_config_taqman.data.splitlines()
+        s2 = form.primer3_config_preamp.data.splitlines()
+
+        # pdf, edf = make_5primer_set(seqs=seqobject, settings1=s1, settings2=s2)
+        # print pdf
+
+        job = q.enqueue(make_5primer_set, seqs=seqobject, settings1=s1, settings2=s2)
+        # job = q.enqueue(len, 'abcdef')
+        print job
+
         flash('Your job was submitted')
+
     else:
-        flash('Something did not work.')
+        flash('Form was not submitted')
 
     g.active_page = 'oligoset_design'
     return render_template('oligoset_design.html', form=form)

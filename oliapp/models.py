@@ -14,7 +14,7 @@ experiment_oligoset = db.Table(
 
 benchtop_oligoset = db.Table(
     'benchtop_oligoset',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('oliuser_id', db.Integer, db.ForeignKey('oliuser.id')),
     db.Column('oligoset_id', db.Integer, db.ForeignKey('oligoset.id')))
 
 
@@ -75,7 +75,7 @@ class Experiment(db.Model):
     is_public = db.Column(db.Boolean, nullable=False, default=False)
     oligosets = db.relationship('Oligoset', secondary=experiment_oligoset,
                                 backref=db.backref('experiments', lazy='dynamic'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'), nullable=True)
 
     def __repr__(self):
         return '<%r>' % self.name
@@ -100,7 +100,7 @@ class Oligoset(db.Model):
     __tablename__ = 'oligoset'
     id = db.Column(db.Integer, primary_key=True)
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'), nullable=True)
     oligos = db.relationship('Oligo', backref='oligoset')
 
     tmid = db.Column(db.Integer, nullable=False)
@@ -137,16 +137,18 @@ class Oligo(db.Model):
         return self.tubename
 
 
-class Jobs(db.Model):
-    __tablename__ = 'jobs'
+class Job(db.Model):
+    __tablename__ = 'job'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))
     rq_id = db.Column(db.Integer)
+    created = db.Column(db.DateTime, default=datetime.datetime.now)
+    completed = db.Column(db.DateTime)
 
 
-role_user = db.Table(
-    'role_user',
-    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+role_oliuser = db.Table(
+    'role_oliuser',
+    db.Column('oliuser_id', db.Integer(), db.ForeignKey('oliuser.id')),
     db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
 
@@ -157,23 +159,22 @@ class Role(db.Model, RoleMixin):
     description = db.Column(db.String(255))
 
 
-class User(db.Model, UserMixin):
-    __tablename__ = 'user'
+class OliUser(db.Model, UserMixin):
+    __tablename__ = 'oliuser'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=False)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
-    roles = db.relationship('Role', secondary=role_user,
-                            backref=db.backref('users', lazy='dynamic'))
+    roles = db.relationship('Role', secondary=role_oliuser)
     benchtop_oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
-    experiments = db.relationship('Experiment', backref='user')
-    jobs = db.relationship('Jobs', backref='user')
+    experiments = db.relationship('Experiment', backref='oliuser')
+    jobs = db.relationship('Job', backref='oliuser')
 
 
 class Primer3Settings(db.Model):
     __tablename__ = 'primer3settings'
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))

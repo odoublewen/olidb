@@ -14,7 +14,7 @@ from oliapp import views, models
 class ExtendedRegisterForm(ConfirmRegisterForm):
     name = StringField('First Name')
 
-user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
+user_datastore = SQLAlchemyUserDatastore(db, models.OliUser, models.Role)
 security = Security(app, user_datastore, confirm_register_form=ExtendedRegisterForm)
 
 mail = Mail(app)

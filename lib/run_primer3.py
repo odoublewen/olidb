@@ -13,6 +13,8 @@ log = logging.getLogger(__name__)
 
 def run_primer3(primer3_in):
 
+    primer3_in = '\n'.join(primer3_in) + '\n'
+
     p = Popen(['primer3_core', '-strict_tags'], stdin=PIPE, stdout=PIPE, bufsize=1)
     primer3_out = p.communicate(input=primer3_in)[0]
 
@@ -61,11 +63,12 @@ def run_primer3(primer3_in):
 def taqman_primers(seqid, seq, p3settings):
 
     # inner taqman primers
-    primer3_in = "SEQUENCE_ID=%s\n" % seqid
-    primer3_in += "SEQUENCE_TEMPLATE=%s\n" % seq
-    primer3_in += "SEQUENCE_INCLUDED_REGION=50,%d\n" % (len(seq)-100)
+    primer3_in = list()
+    primer3_in.append("SEQUENCE_ID=%s" % seqid)
+    primer3_in.append("SEQUENCE_TEMPLATE=%s" % seq)
+    primer3_in.append("SEQUENCE_INCLUDED_REGION=50,%d" % (len(seq)-100))
     primer3_in += p3settings
-    primer3_in += "=\n"
+    primer3_in.append("=")
 
     innerdf, innerexp = run_primer3(primer3_in)
 
@@ -78,15 +81,15 @@ def taqman_primers(seqid, seq, p3settings):
 def preamp_primers(seqid, seq, p3settings, p3coords):
 
     # outer flanking primers
-    primer3_in = ''
+    primer3_in = list()
     for index, row in p3coords.iterrows():
         leftpos = map(int, row.TAQMAN_LEFT.split(','))
         rightpos = map(int, row.TAQMAN_RIGHT.split(','))
-        primer3_in += "SEQUENCE_ID=%s_____%s\n" % (seqid, index)
-        primer3_in += "SEQUENCE_TEMPLATE=%s\n" % seq
-        primer3_in += "SEQUENCE_TARGET=%d,%d\n" % (leftpos[0]+leftpos[1]-12, rightpos[0]-rightpos[1]+12)
+        primer3_in.append("SEQUENCE_ID=%s_____%s" % (seqid, index))
+        primer3_in.append("SEQUENCE_TEMPLATE=%s" % seq)
+        primer3_in.append("SEQUENCE_TARGET=%d,%d" % (leftpos[0]+leftpos[1]-12, rightpos[0]-rightpos[1]+12))
         primer3_in += p3settings
-        primer3_in += "=\n"
+        primer3_in.append("=")
 
     outerdf, outerexp = run_primer3(primer3_in)
 
@@ -137,6 +140,7 @@ def make_5primer_set(seqs, settings1, settings2):
     except ValueError:
         explaindf = None
 
+    print primerdf
     return primerdf, explaindf
 
 
@@ -178,8 +182,8 @@ if __name__ == '__main__':
 
     seqobject = SeqIO.parse(args.fasta, format='fasta')
 
-    s1 = ''.join([l for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_'])
-    s2 = ''.join([l for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_'])
+    s1 = [l for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_']
+    s2 = [l for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_']
 
     pdf, edf = make_5primer_set(seqobject, settings1=s1, settings2=s2)
 
