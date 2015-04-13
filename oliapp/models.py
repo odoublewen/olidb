@@ -138,7 +138,7 @@ class Oligo(db.Model):
 
 
 class Jobs(db.Model):
-    __tablenane__ = 'jobs'
+    __tablename__ = 'jobs'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     rq_id = db.Column(db.Integer)
@@ -170,3 +170,10 @@ class User(db.Model, UserMixin):
     benchtop_oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
     experiments = db.relationship('Experiment', backref='user')
     jobs = db.relationship('Jobs', backref='user')
+
+
+class Primer3Settings(db.Model):
+    __tablename__ = 'primer3settings'
+    id = db.Column(db.Integer, primary_key=True)
+    settings = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

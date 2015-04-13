@@ -22,7 +22,7 @@
 
         {% for i in g.recentexp %}
             <tr>
-                <td><a href="{{ url_for('oligosets', exp=i.id) }}">{{ i.id }}</a></td>
+                <td><a href="{{ url_for('oligoset_browse', exp=i.id) }}">{{ i.id }}</a></td>
                 <td>{{ i.name }}</td>
                 <td>{{ i.oligosets|length }}</td>
                 <td><nobr>{{ i.date|isodate }}</nobr></td>

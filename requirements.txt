@@ -16,7 +16,7 @@ PyYAML==3.10
 SQLAlchemy==0.9.8
 Sijax==0.3.2
 WTForms==2.0.2
-Werkzeug==0.10.1
+Werkzeug==0.10.4
 alembic==0.7.4
 argparse==1.2.1
 biopython==1.65

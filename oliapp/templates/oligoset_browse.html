@@ -22,7 +22,7 @@
 </div>
 
 <div id="filter-row" class="row-fluid">
-    <form id="filter-form" class="form form-inline" action="{{ url_for('oligosets') }}" method="get">
+    <form id="filter-form" class="form form-inline" action="{{ url_for('oligoset_browse') }}" method="get">
     {{ pg.render_pagination() }}
     <input id="search-term" placeholder="Search term(s)" name="term" type="text" onclick="this.select()" class="form-control" value="{{ g.term if g.term is defined and g.term is not none }}">
     <select label="taxa" id="search-taxa" name="taxonomy" class="form-control">

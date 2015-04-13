@@ -1,17 +1,17 @@
 from oliapp import app
 from oliapp.models import Oligoset, Target, Experiment, User, search_oligosets
-from oliapp.forms import ExperimentForm
+from oliapp.forms import ExperimentForm, SequenceForm
 from oliapp import db
 from sqlalchemy import and_, or_, desc
-from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash
-# from flask import make_response, url_for, flash, redirect
+from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash, make_response, url_for, redirect
 from flask.ext.security import login_required, current_user
-from flask.ext.login import user_logged_in
 import flask_sijax
 from sqlalchemy.orm.exc import NoResultFound
 from redis import Redis
 from rq import Queue
-import lib
+from lib import run_primer3
+from Bio import SeqIO
+import cStringIO
 
 q = Queue(connection=Redis())
 
@@ -119,7 +119,7 @@ def benchtop():
 
 @flask_sijax.route(app, '/oligosets', defaults={'page': 1})
 @flask_sijax.route(app, '/oligosets/page/<int:page>')
-def oligosets(page):
+def oligoset_browse(page):
 
     if g.sijax.is_sijax_request:
         g.sijax.register_object(SijaxHandler)
@@ -152,7 +152,7 @@ def oligosets(page):
 
     g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
     g.itemids = [i.id for i in g.pagination.items]
-    g.active_page = 'oligosets'
+    g.active_page = 'oligoset_browse'
     g.taxa = [q.taxa for q in db.session.query(Target.taxonomy.distinct().label("taxa")).order_by(Target.taxonomy).all()]
     return render_template('oligoset_browse.html')
 
@@ -160,7 +160,7 @@ def oligosets(page):
 
 @app.route('/experiments/', defaults={'page': 1})
 @app.route('/experiments/page/<int:page>')
-def experiments(page):
+def experiment_browse(page):
 
     g.term = request.args.get('term')
     g.mine = request.args.get('mine')
@@ -176,7 +176,7 @@ def experiments(page):
         query = query.filter(Experiment.user_id == current_user.id)
 
     g.pagination = query.paginate(page)
-    g.active_page = 'experiments'
+    g.active_page = 'experiment_browse'
     return render_template('experiment_browse.html')
 
 
@@ -188,11 +188,27 @@ def site_search():
     g.active_page = 'search'
     return render_template('site_search.html')
 
-@app.route('/design/create')
+
+@app.route('/design', methods=['GET', 'POST'])
 @login_required
-def oligoset_create():
-    g.active_page = 'design_create'
-    return render_template('index.html')
+def oligoset_design():
+
+    form = SequenceForm(request.form)
+
+    if form.validate_on_submit():
+    # if request.method == 'POST' and form.validate():
+
+        seqhandle = cStringIO.StringIO(form.fasta_sequences.data)
+        seqobject = SeqIO.parse(seqhandle, format='fasta')
+        run_primer3.make_5primer_set(seqs=seqobject,
+                                     settings1=form.primer3_config_taqman.data,
+                                     settings2=form.primer3_config_preamp.data)
+        flash('Your job was submitted')
+    else:
+        flash('Something did not work.')
+
+    g.active_page = 'oligoset_design'
+    return render_template('oligoset_design.html', form=form)
 
 
 

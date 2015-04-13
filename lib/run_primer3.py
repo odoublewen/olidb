@@ -5,7 +5,7 @@ import logging
 from Bio import SeqIO
 from subprocess import Popen, PIPE
 from re import match, search
-import pandas as pd
+from pandas import DataFrame, concat
 import sys
 
 log = logging.getLogger(__name__)
@@ -46,12 +46,12 @@ def run_primer3(primer3_in):
             continue
 
     try:
-        primers = pd.DataFrame(primers, columns=['seqid', 'pid', 'ptype', 'metric', 'value'])
+        primers = DataFrame(primers, columns=['seqid', 'pid', 'ptype', 'metric', 'value'])
     except ValueError:
         primers = None
 
     try:
-        explain = pd.DataFrame(explain, columns=['seqid', 'ptype', 'metric', 'value'])
+        explain = DataFrame(explain, columns=['seqid', 'ptype', 'metric', 'value'])
     except ValueError:
         explain = None
 
@@ -128,12 +128,12 @@ def make_5primer_set(seqs, settings1, settings2):
             log.info('%s: Failed to find INNER primers; try relaxing requirements.' % rec.id)
 
     try:
-        primerdf = pd.concat(primerlist)
+        primerdf = concat(primerlist)
     except ValueError:
         primerdf = None
 
     try:
-        explaindf = pd.concat(explainlist)
+        explaindf = concat(explainlist)
     except ValueError:
         explaindf = None
 
