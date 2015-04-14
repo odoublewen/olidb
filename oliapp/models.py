@@ -103,7 +103,7 @@ class Oligoset(db.Model):
     oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'), nullable=True)
     oligos = db.relationship('Oligo', backref='oligoset')
 
-    tmid = db.Column(db.Integer, nullable=False)
+    tmid = db.Column(db.Integer, nullable=True)
     name = db.Column(db.String(64), nullable=False, unique=True)
     date = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.String(64), nullable=False)
@@ -125,12 +125,13 @@ class Oligo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     oligoset_id = db.Column(db.Integer, db.ForeignKey('oligoset.id'))
 
-    oligoid = db.Column(db.Integer, nullable=False)
+    oligoid = db.Column(db.Integer, nullable=True)
     sequence = db.Column(db.String(255), nullable=False)
     tubename = db.Column(db.String(64), nullable=False)
     probe = db.Column(db.String(16), nullable=True)
     comments = db.Column(db.String(255), nullable=True)
     orderdate = db.Column(db.DateTime, nullable=True)
+    tm = db.Column(db.Float, nullable=True)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
 
     def __repr__(self):
@@ -140,10 +141,11 @@ class Oligo(db.Model):
 class Job(db.Model):
     __tablename__ = 'job'
     id = db.Column(db.Integer, primary_key=True)
-    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))
-    rq_id = db.Column(db.Integer)
+    name = db.Column(db.String(128), nullable=False)
+    jobid = db.Column(db.String(64), unique=True, nullable=False)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
     completed = db.Column(db.DateTime)
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))
 
 
 role_oliuser = db.Table(

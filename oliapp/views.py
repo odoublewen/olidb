@@ -1,5 +1,5 @@
 from oliapp import app
-from oliapp.models import Oligoset, Target, Experiment, OliUser, search_oligosets
+from oliapp.models import Oligoset, Target, Experiment, OliUser, Job, search_oligosets
 from oliapp.forms import ExperimentForm, SequenceForm
 from oliapp import db
 from sqlalchemy import and_, or_, desc
@@ -12,8 +12,16 @@ from rq import Queue
 from lib.run_primer3 import make_5primer_set
 from Bio import SeqIO
 import cStringIO
+from collections import namedtuple
+import pandas as pd
 
 q = Queue(connection=Redis())
+
+
+def iternamedtuples(df):
+    Row = namedtuple('Row', df.columns)
+    for row in df.itertuples():
+        yield Row(*row[1:])
 
 
 class SijaxHandler(object):
@@ -129,11 +137,6 @@ def oligoset_browse(page):
     g.term = request.args.get('term')
     g.taxonomy = request.args.get('taxonomy')
 
-    # try:
-    #     g.perpage = int(request.args.get('perpage'))
-    # except (ValueError, TypeError):
-    #     g.perpage = 100
-
     query = Oligoset.query.join(Target)
 
     if g.experiment_num:
@@ -195,26 +198,29 @@ def oligoset_design():
 
     form = SequenceForm(request.form)
 
-    # if request.method == 'POST' and form.validate():
-    if form.validate_on_submit():
+    if request.method == 'POST':
+        if form.validate():
 
-        seqhandle = cStringIO.StringIO(form.fasta_sequences.data)
-        seqobject = SeqIO.parse(seqhandle, format='fasta')
+            seqhandle = cStringIO.StringIO(form.fasta_sequences.data)
+            seqdict = dict([(rec.id, str(rec.seq)) for rec in SeqIO.parse(seqhandle, format='fasta')])
 
-        s1 = form.primer3_config_taqman.data.splitlines()
-        s2 = form.primer3_config_preamp.data.splitlines()
+            s1 = form.primer3_config_taqman.data.splitlines()
+            s2 = form.primer3_config_preamp.data.splitlines()
 
-        # pdf, edf = make_5primer_set(seqs=seqobject, settings1=s1, settings2=s2)
-        # print pdf
+            job = q.enqueue_call(make_5primer_set, args=(seqdict, s1, s2), result_ttl=86400)
 
-        job = q.enqueue(make_5primer_set, seqs=seqobject, settings1=s1, settings2=s2)
-        # job = q.enqueue(len, 'abcdef')
-        print job
+            jobrec = Job(jobid = job.id, name=form.name.data)
+            current_user.jobs.append(jobrec)
+            db.session.add(current_user)
+            db.session.commit()
 
-        flash('Your job was submitted')
+            flash('Your job was submitted %s' % job.id)
 
     else:
-        flash('Form was not submitted')
+        job = q.fetch_job(request.args.get('jobid'))
+
+        g.results = iternamedtuples(job.result[0])
+        g.explain = iternamedtuples(job.result[1])
 
     g.active_page = 'oligoset_design'
     return render_template('oligoset_design.html', form=form)

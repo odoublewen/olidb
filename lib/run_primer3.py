@@ -109,26 +109,26 @@ def make_5primer_set(seqs, settings1, settings2):
 
     primerlist = []
     explainlist = []
-    for rec in seqs:
-        innerdf, innerexp = taqman_primers(rec.id, rec.seq, settings1)
+    for seqid, seqstring in seqs.iteritems():
+        innerdf, innerexp = taqman_primers(seqid, seqstring, settings1)
         primerlist.append(innerdf)
         explainlist.append(innerexp)
 
         if innerdf is not None:
-            log.info('%s: Found %d INNER primers sets' % (rec.id, innerdf.pid.nunique()))
+            log.info('%s: Found %d INNER primers sets' % (seqid, innerdf.pid.nunique()))
             # get the coordinates of each primer pair, so that we can target the flanking primers
             p3coords = innerdf[innerdf.metric == 'COORDS'].pivot(index='pid', columns='ptype', values='value')
-            outerdf, outerexp = preamp_primers(rec.id, rec.seq, settings2, p3coords)
+            outerdf, outerexp = preamp_primers(seqid, seqstring, settings2, p3coords)
             primerlist.append(outerdf)
             explainlist.append(outerexp)
 
             if outerdf is not None:
-                log.info('%s: Found %d OUTER primers sets' % (rec.id, outerdf.pid2.nunique()))
+                log.info('%s: Found %d OUTER primers sets' % (seqid, outerdf.pid2.nunique()))
                 # primerlist.append(innerdf.append(outerdf))
             else:
-                log.info('%s: Failed to find OUTER primers; try relaxing requirements.' % rec.id)
+                log.info('%s: Failed to find OUTER primers; try relaxing requirements.' % seqid)
         else:
-            log.info('%s: Failed to find INNER primers; try relaxing requirements.' % rec.id)
+            log.info('%s: Failed to find INNER primers; try relaxing requirements.' % seqid)
 
     try:
         primerdf = concat(primerlist)
@@ -140,7 +140,6 @@ def make_5primer_set(seqs, settings1, settings2):
     except ValueError:
         explaindf = None
 
-    print primerdf
     return primerdf, explaindf
 
 
@@ -180,12 +179,12 @@ if __name__ == '__main__':
 
     logging.basicConfig(format="%(levelname)s: %(message)s", level=loglevel)
 
-    seqobject = SeqIO.parse(args.fasta, format='fasta')
+    seqdict = dict([(rec.id, str(rec.seq)) for rec in SeqIO.parse(args.fasta, format='fasta')])
 
     s1 = [l for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_']
     s2 = [l for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_']
 
-    pdf, edf = make_5primer_set(seqobject, settings1=s1, settings2=s2)
+    pdf, edf = make_5primer_set(seqdict, settings1=s1, settings2=s2)
 
     print pdf
     print edf

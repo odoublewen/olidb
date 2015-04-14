@@ -5,6 +5,7 @@ from oliapp import db
 from oliapp.models import Target, Oligoset, Oligo, Experiment
 import sys
 from sqlalchemy import func, select, update
+from subprocess import check_output
 
 def loadgenes():
     genes = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/genes.csv')
@@ -62,6 +63,8 @@ def loadoligos():
 
         print '\t%s' % row.OLIGO
 
+        tm = check_output(['oligotm','-tp','1','-sc','1',row.SEQUENCE]).strip()
+
         o = Oligo()
 
         o.oligoid = row.ID
@@ -69,6 +72,8 @@ def loadoligos():
         o.tubename = row.OLIGO
         o.probe = row.PROBE
         o.comments = row.COMMENTS
+        o.tm = tm
+
         if not pd.isnull(row.ORDERDATEDATE):
             o.orderdate = row.ORDERDATEDATE
 
