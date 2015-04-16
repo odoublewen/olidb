@@ -12,7 +12,7 @@ import cStringIO
 from collections import namedtuple
 import pandas as pd
 from oliapp import db, tasks, redis
-
+import datetime
 
 def iternamedtuples(df):
     Row = namedtuple('Row', df.columns)
@@ -229,14 +229,8 @@ def oligoset_results():
     # redis_keys = redis.scan(cursor=0, match='*301fbdb8-88f6-46d6-a362-f87c14bbc8d5*', count=10000)
     # print redis_keys
 
-    jobres = tasks.enqueue_5primer_set.AsyncResult('bdkljfghdfkjlhdfgkjhfksj')
-    print jobres
-    print jobres.status
-
     for job in current_user.jobs:
-        jobres = tasks.enqueue_5primer_set.AsyncResult(job.jobid)
-        print jobres.status
-        if jobres is None:
+        if datetime.datetime.now() - job.created > datetime.timedelta(days=1):
             current_user.jobs.remove(job)
     db.session.add(current_user)
     db.session.commit()
