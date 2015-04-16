@@ -36,7 +36,6 @@
 {% set navigation_bar = [
     ('oligoset_browse', 'Oligos'),
     ('experiment_browse', 'Experiments'),
-    ('oligoset_design', 'Design'),
 ] -%}
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -56,6 +55,14 @@
                 {% for page, caption in navigation_bar %}
                     <li{% if g.active_page == page %} class="active"{% endif %}><a href="{{ url_for(page) }}">{{ caption }}</a></li>
                 {% endfor %}
+
+                <li class="dropdown{% if g.active_page == 'oligoset_design' %} active{% endif %}">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Design<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="{{ url_for("oligoset_design") }}">Design new oligos</a></li>
+                        <li><a href="{{ url_for("oligoset_results") }}">View results</a></li>
+                    </ul>
+                </li>
 
                 <li{% if g.active_page == 'benchtop' %} class="active"{% endif %}>
                     <a href="{{ url_for('benchtop') }}">My Benchtop

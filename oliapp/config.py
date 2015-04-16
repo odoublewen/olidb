@@ -20,3 +20,8 @@ MAIL_PASSWORD = '9510fe09e22c6cf4490fc1efdf2d5a16'
 
 SIJAX_STATIC_PATH = os.path.join(basedir, 'static/js/sijax/')
 SIJAX_JSON_URI = '/static/js/sijax/json2.js'
+
+BROKER_URL='redis://'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
+CELERY_TASK_RESULT_EXPIRES = 60

@@ -5,8 +5,9 @@ import logging
 from Bio import SeqIO
 from subprocess import Popen, PIPE
 from re import match, search
-from pandas import DataFrame, concat
+import pandas as pd
 import sys
+import pdb
 
 log = logging.getLogger(__name__)
 
@@ -38,22 +39,26 @@ def run_primer3(primer3_in):
 
         primerpatt = match('PRIMER_(LEFT|RIGHT|INTERNAL|PAIR)_([0-9]+)_?(.*)=(.+)', l)
         if primerpatt:
-            pid = primerpatt.group(2)
+            pnum = primerpatt.group(2)
+            pid = seqid + '____' + pnum
+
             ptype = primerpatt.group(1)
             metric = primerpatt.group(3)
             if metric == '':
                 metric = 'COORDS'
+            variable = ptype + '_' + metric
+
             value = primerpatt.group(4)
-            primers.append([seqid, pid, ptype, metric, value])
+            primers.append([pid, variable, value])
             continue
 
     try:
-        primers = DataFrame(primers, columns=['seqid', 'pid', 'ptype', 'metric', 'value'])
+        primers = pd.DataFrame(primers, columns=['pid', 'variable', 'value'])
     except ValueError:
         primers = None
 
     try:
-        explain = DataFrame(explain, columns=['seqid', 'ptype', 'metric', 'value'])
+        explain = pd.DataFrame(explain, columns=['seqid', 'ptype', 'variable', 'value'])
     except ValueError:
         explain = None
 
@@ -73,7 +78,7 @@ def taqman_primers(seqid, seq, p3settings):
     innerdf, innerexp = run_primer3(primer3_in)
 
     if innerdf is not None:
-        innerdf['ptype'] = 'TAQMAN_' + innerdf['ptype'].astype(str)
+        innerdf['variable'] = 'TAQMAN_' + innerdf['variable'].astype(str)
 
     return innerdf, innerexp
 
@@ -83,9 +88,9 @@ def preamp_primers(seqid, seq, p3settings, p3coords):
     # outer flanking primers
     primer3_in = list()
     for index, row in p3coords.iterrows():
-        leftpos = map(int, row.TAQMAN_LEFT.split(','))
-        rightpos = map(int, row.TAQMAN_RIGHT.split(','))
-        primer3_in.append("SEQUENCE_ID=%s_____%s" % (seqid, index))
+        leftpos = map(int, row.TAQMAN_LEFT_COORDS.split(','))
+        rightpos = map(int, row.TAQMAN_RIGHT_COORDS.split(','))
+        primer3_in.append("SEQUENCE_ID=%s" % index)
         primer3_in.append("SEQUENCE_TEMPLATE=%s" % seq)
         primer3_in.append("SEQUENCE_TARGET=%d,%d" % (leftpos[0]+leftpos[1]-12, rightpos[0]-rightpos[1]+12))
         primer3_in += p3settings
@@ -94,53 +99,85 @@ def preamp_primers(seqid, seq, p3settings, p3coords):
     outerdf, outerexp = run_primer3(primer3_in)
 
     if outerdf is not None:
-        outerdf['ptype'] = 'PREAMP_' + outerdf['ptype'].astype(str)
-        outerdf['pid2'] = outerdf['pid']
-        outerdf['seqid'], outerdf['pid'] = zip(*outerdf['seqid'].str.split('_____').tolist())
-
-    if outerexp is not None:
-        outerexp['ptype'] = 'PREAMP_' + outerexp['ptype'].astype(str)
-        outerexp['seqid'].replace(to_replace=r'(.+)_____.*', value=r'\1', inplace=True, regex=True)
+        outerdf['variable'] = 'PREAMP_' + outerdf['variable'].astype(str)
 
     return outerdf, outerexp
 
-
 def make_5primer_set(seqs, settings1, settings2):
 
-    primerlist = []
-    explainlist = []
-    for seqid, seqstring in seqs.iteritems():
-        innerdf, innerexp = taqman_primers(seqid, seqstring, settings1)
-        primerlist.append(innerdf)
-        explainlist.append(innerexp)
+    innerprimerlist = []
+    innerexplainlist = []
+    outerprimerlist = []
+    outerexplainlist = []
 
-        if innerdf is not None:
-            log.info('%s: Found %d INNER primers sets' % (seqid, innerdf.pid.nunique()))
+    for seqid, seqstring in seqs.iteritems():
+        innerpr, innerexp = taqman_primers(seqid, seqstring, settings1)
+        innerexplainlist.append(innerexp)
+
+        if innerpr is not None:
+            log.info('%s: Found %d INNER primers sets' % (seqid, innerpr.pid.nunique()))
+            innerprimerlist.append(innerpr)
+
             # get the coordinates of each primer pair, so that we can target the flanking primers
-            p3coords = innerdf[innerdf.metric == 'COORDS'].pivot(index='pid', columns='ptype', values='value')
+            p3coords = innerpr[innerpr.variable.str.contains('COORDS')].pivot(index='pid', columns='variable', values='value')
             outerdf, outerexp = preamp_primers(seqid, seqstring, settings2, p3coords)
-            primerlist.append(outerdf)
-            explainlist.append(outerexp)
+            outerexplainlist.append(outerexp)
 
             if outerdf is not None:
-                log.info('%s: Found %d OUTER primers sets' % (seqid, outerdf.pid2.nunique()))
-                # primerlist.append(innerdf.append(outerdf))
+                log.info('%s: Found %d OUTER primers sets' % (seqid, outerdf.pid.nunique()))
+                outerprimerlist.append(outerdf)
+
+#
+
             else:
                 log.info('%s: Failed to find OUTER primers; try relaxing requirements.' % seqid)
+
         else:
             log.info('%s: Failed to find INNER primers; try relaxing requirements.' % seqid)
 
-    try:
-        primerdf = concat(primerlist)
-    except ValueError:
-        primerdf = None
+    # try:
+    innerprimerdf = pd.concat(innerprimerlist)
+    innerprimerdf = innerprimerdf.pivot(index='pid', columns='variable', values='value')
 
-    try:
-        explaindf = concat(explainlist)
-    except ValueError:
-        explaindf = None
+    outerprimerdf = pd.concat(outerprimerlist)
+    outerprimerdf = outerprimerdf.pivot(index='pid', columns='variable', values='value')
+    outerprimerdf['pidkey'] = outerprimerdf.index.to_series().replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
 
-    return primerdf, explaindf
+    primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='pidkey', suffixes=('_inner','_outer'))
+
+    # import ipdb; ipdb.set_trace()
+
+    return primerdf, None
+
+
+# primerdf.columns.values
+# array(['TAQMAN_INTERNAL_COORDS', 'TAQMAN_INTERNAL_GC_PERCENT',
+#        'TAQMAN_INTERNAL_HAIRPIN_TH', 'TAQMAN_INTERNAL_PENALTY',
+#        'TAQMAN_INTERNAL_SELF_ANY_TH', 'TAQMAN_INTERNAL_SELF_END_TH',
+#        'TAQMAN_INTERNAL_SEQUENCE', 'TAQMAN_INTERNAL_TM',
+#        'TAQMAN_LEFT_COORDS', 'TAQMAN_LEFT_END_STABILITY',
+#        'TAQMAN_LEFT_GC_PERCENT', 'TAQMAN_LEFT_HAIRPIN_TH',
+#        'TAQMAN_LEFT_PENALTY', 'TAQMAN_LEFT_SELF_ANY_TH',
+#        'TAQMAN_LEFT_SELF_END_TH', 'TAQMAN_LEFT_SEQUENCE', 'TAQMAN_LEFT_TM',
+#        'TAQMAN_PAIR_COMPL_ANY_TH', 'TAQMAN_PAIR_COMPL_END_TH',
+#        'TAQMAN_PAIR_PENALTY', 'TAQMAN_PAIR_PRODUCT_SIZE',
+#        'TAQMAN_RIGHT_COORDS', 'TAQMAN_RIGHT_END_STABILITY',
+#        'TAQMAN_RIGHT_GC_PERCENT', 'TAQMAN_RIGHT_HAIRPIN_TH',
+#        'TAQMAN_RIGHT_PENALTY', 'TAQMAN_RIGHT_SELF_ANY_TH',
+#        'TAQMAN_RIGHT_SELF_END_TH', 'TAQMAN_RIGHT_SEQUENCE',
+#        'TAQMAN_RIGHT_TM', 'PREAMP_LEFT_COORDS',
+#        'PREAMP_LEFT_END_STABILITY', 'PREAMP_LEFT_GC_PERCENT',
+#        'PREAMP_LEFT_HAIRPIN_TH', 'PREAMP_LEFT_PENALTY',
+#        'PREAMP_LEFT_SELF_ANY_TH', 'PREAMP_LEFT_SELF_END_TH',
+#        'PREAMP_LEFT_SEQUENCE', 'PREAMP_LEFT_TM',
+#        'PREAMP_PAIR_COMPL_ANY_TH', 'PREAMP_PAIR_COMPL_END_TH',
+#        'PREAMP_PAIR_PENALTY', 'PREAMP_PAIR_PRODUCT_SIZE',
+#        'PREAMP_RIGHT_COORDS', 'PREAMP_RIGHT_END_STABILITY',
+#        'PREAMP_RIGHT_GC_PERCENT', 'PREAMP_RIGHT_HAIRPIN_TH',
+#        'PREAMP_RIGHT_PENALTY', 'PREAMP_RIGHT_SELF_ANY_TH',
+#        'PREAMP_RIGHT_SELF_END_TH', 'PREAMP_RIGHT_SEQUENCE',
+#        'PREAMP_RIGHT_TM', 'pidkey'], dtype=object)
+
 
 
 if __name__ == '__main__':
@@ -181,10 +218,7 @@ if __name__ == '__main__':
 
     seqdict = dict([(rec.id, str(rec.seq)) for rec in SeqIO.parse(args.fasta, format='fasta')])
 
-    s1 = [l for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_']
-    s2 = [l for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_']
+    s1 = [l.strip() for l in open(args.settings1).readlines() if l[:7] == 'PRIMER_']
+    s2 = [l.strip() for l in open(args.settings2).readlines() if l[:7] == 'PRIMER_']
 
     pdf, edf = make_5primer_set(seqdict, settings1=s1, settings2=s2)
-
-    print pdf
-    print edf

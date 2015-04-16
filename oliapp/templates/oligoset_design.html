@@ -8,85 +8,25 @@
 
     <div class="row-fluid">
 
-        <div class="col-md-8">
-            <h3>Primer Design Job Results</h3>
-
-               <table class="table table-striped table-bordered">
-                <thead><tr>
-                    <th>seqid</th>
-                    <th>pid</th>
-                    <th>ptype</th>
-                    <th>metric</th>
-                    <th>value</th>
-                </tr></thead>
-
-            {% for i in g.results %}
-                <tr>
-                    <td>{{ i.seqid }}</td>
-                    <td>{{ i.pid }}-{{ i.pid2 }}</td>
-                    <td>{{ i.ptype }}</td>
-                    <td>{{ i.metric }}</td>
-                    <td>{{ i.value }}</td>
-                </tr>
-            {% endfor %}
-           </table>
-        </div>
-
-        <div class="col-md-4">
-            <h3>Job Queue / Submit</h3>
-
+        <div class="col-md-12">
             <form method="POST">
             {{ form.csrf_token }}
-
-            <ul class="nav nav-tabs">
-              <li class="active"><a href="#queue" data-toggle="tab" aria-expanded="true">Job Queue</a></li>
-              <li class=""><a href="#submit" data-toggle="tab" aria-expanded="false">Submit Job</a></li>
-            </ul>
-            <div id="myTabContent" class="tab-content">
-
-              <div class="tab-pane active in" id="queue">
-                <h3>Your oligoset design jobs</h3>
-                <table class="table table-striped table-bordered">
-                <thead><tr>
-                    <th>Job</th>
-                    <th>Name</th>
-                    <th>Time Submitted</th>
-                    <th>Time Completed</th>
-                    <th>No. Submitted</th>
-                    <th>No. Completed</th>
-                </tr></thead>
-
-                {% for j in current_user.jobs %}
-                <tr>
-                    <td><a href="{{ url_for('oligoset_design', jobid=j.jobid) }}">{{ j.id }}</a></td>
-                    <td>{{ j.name }}</td>
-                    <td>{{ j.created }}</td>
-                    <td>{{ j.completed }}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                {% endfor %}
-
-                </table>
-              </div>
-
-
-              <div class="tab-pane" id="submit">
-                    <br>{{ render_field(form.name, class="form-control", with_label=True, default='owen') }}
-                    <br>{{ render_field(form.fasta_sequences, class="form-control", rows=20, with_label=True) }}
-                    <br>{{ render_field(form.primer3_config_taqman, class="form-control", rows=20, with_label=True) }}
-                    <br>{{ render_field(form.primer3_config_preamp, class="form-control", rows=20, with_label=True) }}
-                    <input class="btn btn-primary btn-sm" type="submit" value="Lauch Primer3 Job">
-                    <p>These settings control how Primer3 picks the internal Taqman oligos (TMF, TMP, TMR) and the flanking
-                    pre-amp oligos (RTF, RTR).  Detailed information is
-                    available in the <a href="{{ url_for('static', filename='primer3_manual.htm') }}">Primer3 manual</a>.</p>
-              </div>
-            </div>
-            </form>
+            <br>{{ render_field(form.name, class="form-control", with_label=True, default='owen') }}
+            <br>{{ render_field(form.fasta_sequences, class="form-control", rows=20, with_label=True) }}
+        <div class="row">
+            <br><br><p>The following settings control how Primer3 picks the internal Taqman oligos (TMF, TMP, TMR) and the flanking
+            pre-amp oligos (RTF, RTR).  Detailed information is available in the <a href="{{ url_for('static', filename='primer3_manual.htm') }}">Primer3 manual</a>.</p>
+        <div class="col-md-6">
+            <br>{{ render_field(form.primer3_config_taqman, class="form-control", rows=30, with_label=True) }}
+        </div>
+        <div class="col-md-6">
+            <br>{{ render_field(form.primer3_config_preamp, class="form-control", rows=30, with_label=True) }}
+            <input class="btn btn-primary btn-sm" type="submit" value="Lauch Primer3 Job">
 
         </div>
-
-    <div class="col-md-4">
+        </div>
+        </form>
+    </div>
     </div>
 
 {% endblock %}

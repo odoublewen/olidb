@@ -1,21 +1,17 @@
 from oliapp import app
 from oliapp.models import Oligoset, Target, Experiment, OliUser, Job, search_oligosets
 from oliapp.forms import ExperimentForm, SequenceForm
-from oliapp import db
 from sqlalchemy import and_, or_, desc
 from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash, make_response, url_for, redirect
 from flask.ext.security import login_required, current_user
 import flask_sijax
 from sqlalchemy.orm.exc import NoResultFound
-from redis import Redis
-from rq import Queue
 from lib.run_primer3 import make_5primer_set
 from Bio import SeqIO
 import cStringIO
 from collections import namedtuple
 import pandas as pd
-
-q = Queue(connection=Redis())
+from oliapp import db, tasks, redis
 
 
 def iternamedtuples(df):
@@ -207,7 +203,11 @@ def oligoset_design():
             s1 = form.primer3_config_taqman.data.splitlines()
             s2 = form.primer3_config_preamp.data.splitlines()
 
-            job = q.enqueue_call(make_5primer_set, args=(seqdict, s1, s2), result_ttl=86400)
+            job = tasks.enqueue_5primer_set.delay(seqdict, s1, s2)
+            print job
+            print job.backend
+
+            # import ipdb; ipdb.set_trace()
 
             jobrec = Job(jobid = job.id, name=form.name.data)
             current_user.jobs.append(jobrec)
@@ -216,14 +216,39 @@ def oligoset_design():
 
             flash('Your job was submitted %s' % job.id)
 
-    else:
-        job = q.fetch_job(request.args.get('jobid'))
-
-        g.results = iternamedtuples(job.result[0])
-        g.explain = iternamedtuples(job.result[1])
+            return redirect(url_for('oligoset_results'))
 
     g.active_page = 'oligoset_design'
     return render_template('oligoset_design.html', form=form)
 
 
+@app.route('/results', methods=['GET'])
+@login_required
+def oligoset_results():
+    #, match='celery-task-meta-*'
+    # redis_keys = redis.scan(cursor=0, match='*301fbdb8-88f6-46d6-a362-f87c14bbc8d5*', count=10000)
+    # print redis_keys
+
+    jobres = tasks.enqueue_5primer_set.AsyncResult('bdkljfghdfkjlhdfgkjhfksj')
+    print jobres
+    print jobres.status
+
+    for job in current_user.jobs:
+        jobres = tasks.enqueue_5primer_set.AsyncResult(job.jobid)
+        print jobres.status
+        if jobres is None:
+            current_user.jobs.remove(job)
+    db.session.add(current_user)
+    db.session.commit()
+
+    jobid = request.args.get('jobid')
+    if jobid is not None:
+        job = tasks.enqueue_5primer_set.AsyncResult(jobid)
+        if job.ready():
+            g.results = iternamedtuples(job.get()[0])
+            g.explain = iternamedtuples(job.get()[1])
+
+
+    g.active_page = 'oligoset_results'
+    return render_template('oligoset_results.html')
 
