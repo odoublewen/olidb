@@ -6,14 +6,27 @@
 {% block content %}
 <h1>Design New Oligos</h1>
 
-    <div class="row-fluid">
+    <form method="POST">
+    {{ form.csrf_token }}
 
+    <div class="row">
         <div class="col-md-12">
-            <form method="POST">
-            {{ form.csrf_token }}
-            <br>{{ render_field(form.name, class="form-control", with_label=True, default='owen') }}
-            <br>{{ render_field(form.fasta_sequences, class="form-control", rows=20, with_label=True) }}
-        <div class="row">
+            <div class="input-group">
+                {{ render_field(form.jobname, class="form-control", with_label=False) }}
+                <span class="input-group-btn">
+                    <input class="btn btn-default" type="submit" value="Lauch Primer3 Job">
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            {{ render_field(form.fasta_sequences, class="form-control padding:50px", rows=20, with_label=True) }}
+        </div>
+    </div>
+
+    <div class="row">
             <br><br><p>The following settings control how Primer3 picks the internal Taqman oligos (TMF, TMP, TMR) and the flanking
             pre-amp oligos (RTF, RTR).  Detailed information is available in the <a href="{{ url_for('static', filename='primer3_manual.htm') }}">Primer3 manual</a>.</p>
         <div class="col-md-6">
@@ -21,12 +34,9 @@
         </div>
         <div class="col-md-6">
             <br>{{ render_field(form.primer3_config_preamp, class="form-control", rows=30, with_label=True) }}
-            <input class="btn btn-primary btn-sm" type="submit" value="Lauch Primer3 Job">
+        </div>
+    </div>
 
-        </div>
-        </div>
-        </form>
-    </div>
-    </div>
+    </form>
 
 {% endblock %}

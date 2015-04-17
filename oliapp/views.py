@@ -204,12 +204,10 @@ def oligoset_design():
             s2 = form.primer3_config_preamp.data.splitlines()
 
             job = tasks.enqueue_5primer_set.delay(seqdict, s1, s2)
-            print job
-            print job.backend
 
             # import ipdb; ipdb.set_trace()
 
-            jobrec = Job(jobid = job.id, name=form.name.data)
+            jobrec = Job(jobid=job.id, jobname=form.jobname.data)
             current_user.jobs.append(jobrec)
             db.session.add(current_user)
             db.session.commit()
@@ -225,9 +223,6 @@ def oligoset_design():
 @app.route('/results', methods=['GET'])
 @login_required
 def oligoset_results():
-    #, match='celery-task-meta-*'
-    # redis_keys = redis.scan(cursor=0, match='*301fbdb8-88f6-46d6-a362-f87c14bbc8d5*', count=10000)
-    # print redis_keys
 
     for job in current_user.jobs:
         if datetime.datetime.now() - job.created > datetime.timedelta(days=1):

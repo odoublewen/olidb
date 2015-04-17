@@ -40,24 +40,25 @@
                 {% if g.results %}
                <table class="table table-striped table-bordered">
                 <thead><tr>
-                    <th>seqid</th>
-                    <th>pid</th>
-                    <th>ptype</th>
-                    <th>metric</th>
-                    <th>value</th>
+                    <th>id</th>
+                    <th>penalty</th>
+                    <th>TMF</th>
+                    <th>TMP</th>
+                    <th>TMR</th>
                 </tr></thead>
 
             {% for i in g.results %}
                 <tr>
                     <td>{{ i.pidkey }}</td>
-                    <td>{{ i.PREAMP_PAIR_PENALTY }}</td>
                     <td>{{ i.TAQMAN_PAIR_PENALTY }}</td>
+{#                    <td>{{ i.PREAMP_PAIR_PENALTY }}</td>#}
 {#                    <td>{{ i.PREAMP_LEFT_SEQUENCE }}</td>#}
 {#                    <td>{{ i.PREAMP_RIGHT_SEQUENCE }}</td>#}
-{#                    <td>{{ i.TAQMAN_LEFT_SEQUENCE }}</td>#}
-{#                    <td>{{ i.TAQMAN_INTERNAL_SEQUENCE }}</td>#}
-{#                    <td>{{ i.TAQMAN_RIGHT_SEQUENCE }}</td>#}
+                    <td>{{ i.TAQMAN_LEFT_SEQUENCE }}</td>
+                    <td>{{ i.TAQMAN_INTERNAL_SEQUENCE }}</td>
+                    <td>{{ i.TAQMAN_RIGHT_SEQUENCE }}</td>
 
+{#                    <td>{{ i.TAQMAN_RIGHT_COORDS }}</td>#}
                 </tr>
             {% endfor %}
            </table>

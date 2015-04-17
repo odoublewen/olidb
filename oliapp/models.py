@@ -141,7 +141,7 @@ class Oligo(db.Model):
 class Job(db.Model):
     __tablename__ = 'job'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
+    jobname = db.Column(db.String(128), nullable=False)
     jobid = db.Column(db.String(64), unique=True, nullable=False)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
     completed = db.Column(db.DateTime)
