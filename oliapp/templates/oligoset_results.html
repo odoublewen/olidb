@@ -9,35 +9,11 @@
     <div class="row-fluid">
 
         <div class="col-md-12">
-            <h3>Job Queue</h3>
-
-                <table class="table table-striped table-bordered">
-                <thead><tr>
-                    <th>Job</th>
-                    <th>Name</th>
-                    <th>Time Submitted</th>
-                    <th>Time Completed</th>
-                    <th>No. Submitted</th>
-                    <th>No. Completed</th>
-                </tr></thead>
-
-                {% for j in current_user.jobs %}
-                <tr>
-                    <td><a href="{{ url_for('oligoset_results', jobid=j.jobid) }}">{{ j.id }}</a></td>
-                    <td>{{ j.name }}</td>
-                    <td>{{ j.created }}</td>
-                    <td>{{ j.completed }}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                {% endfor %}
-
-                </table>
 
 
             <h3>Job Results</h3>
 
-                {% if g.results %}
+            {% if g.results %}
                <table class="table table-striped table-bordered">
                 <thead><tr>
                     <th>id</th>
@@ -62,6 +38,9 @@
                 </tr>
             {% endfor %}
            </table>
+        {% else %}
+            <p>Could not find job results.  (Results are stored for 24 hours.)</p>
+            <p>You can submit a new job on the <a href="{{ url_for("oligoset_design") }}">design</a> page.</p>
         {% endif %}
         </div>
 

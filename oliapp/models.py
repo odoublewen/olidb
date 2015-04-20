@@ -144,7 +144,8 @@ class Job(db.Model):
     jobname = db.Column(db.String(128), nullable=False)
     jobid = db.Column(db.String(64), unique=True, nullable=False)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
-    completed = db.Column(db.DateTime)
+    numberdone = db.Column(db.Integer)
+    numbertotal = db.Column(db.Integer)
     oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))
 
 

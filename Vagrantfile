@@ -24,6 +24,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "forwarded_port", guest: 5000, host: 5050
 
+  # Set the Timezone to something useful
+  config.vm.provision :shell, :inline => "ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime"
+
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   # config.vm.network "private_network", ip: "192.168.33.10"

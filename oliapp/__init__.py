@@ -1,7 +1,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.mail import Mail
-from flask.ext.security import Security, SQLAlchemyUserDatastore, ConfirmRegisterForm
+from flask.ext.security import Security, SQLAlchemyUserDatastore, ConfirmRegisterForm, RegisterForm
 from wtforms import StringField
 import flask_sijax
 from redis import StrictRedis
@@ -31,11 +31,16 @@ celeryapp = make_celery(app)
 from oliapp import views, models
 
 
-class ExtendedRegisterForm(ConfirmRegisterForm):
+# class ExtendedRegisterForm(ConfirmRegisterForm):
+#     name = StringField('First Name')
+
+class ExtendedRegisterForm(RegisterForm):
     name = StringField('First Name')
 
+
 user_datastore = SQLAlchemyUserDatastore(db, models.OliUser, models.Role)
-security = Security(app, user_datastore, confirm_register_form=ExtendedRegisterForm)
+# security = Security(app, user_datastore, confirm_register_form=ExtendedRegisterForm)
+security = Security(app, user_datastore, register_form=ExtendedRegisterForm)
 
 mail = Mail(app)
 flask_sijax.Sijax(app)

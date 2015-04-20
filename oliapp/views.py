@@ -13,6 +13,7 @@ from collections import namedtuple
 import pandas as pd
 from oliapp import db, tasks, redis
 import datetime
+from oliapp.config import CELERY_TASK_RESULT_EXPIRES
 
 def iternamedtuples(df):
     Row = namedtuple('Row', df.columns)
@@ -93,10 +94,9 @@ def benchtop():
     if form.validate_on_submit():
         if form.saveas.data == "NewExperiment":
             exp = Experiment(name=form.name.data, description=form.description.data, is_public=form.is_public.data,
-                             user_id=current_user.id, oligosets=current_user.benchtop_oligosets)
+                             oliuser_id=current_user.id, oligosets=current_user.benchtop_oligosets)
         else:
             exp = Experiment.query.get(int(form.saveas.data))
-            print exp
             exp.oligosets = current_user.benchtop_oligosets
             if form.name.data != '':
                 exp.name = form.name.data
@@ -109,7 +109,12 @@ def benchtop():
         db.session.commit()
         flash('Your benchtop was saved as %s' % exp.name)
 
-    g.active_page = 'benchtop'
+    for job in current_user.jobs:
+        if datetime.datetime.now() - job.created > datetime.timedelta(seconds=CELERY_TASK_RESULT_EXPIRES):
+            current_user.jobs.remove(job)
+    db.session.add(current_user)
+    db.session.commit()
+
     oligoset_list = [o.id for o in current_user.benchtop_oligosets]
 
     query = Oligoset.query.join(Target)
@@ -118,6 +123,7 @@ def benchtop():
     g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
     g.myexperiments = current_user.experiments
 
+    g.active_page = 'benchtop'
     return render_template('benchtop.html', form=form)
 
 
@@ -172,7 +178,7 @@ def experiment_browse(page):
             query = query.filter(Experiment.name.ilike(term) | Experiment.description.ilike(term))
 
     if g.mine == 'T':
-        query = query.filter(Experiment.user_id == current_user.id)
+        query = query.filter(Experiment.oliuser_id == current_user.id)
 
     g.pagination = query.paginate(page)
     g.active_page = 'experiment_browse'
@@ -197,6 +203,10 @@ def oligoset_design():
     if request.method == 'POST':
         if form.validate():
 
+            jobname = form.jobname.data
+            if jobname == "" or jobname is None:
+                jobname = current_user.name + ' ' + str(len(current_user.jobs) + 1)
+
             seqhandle = cStringIO.StringIO(form.fasta_sequences.data)
             seqdict = dict([(rec.id, str(rec.seq)) for rec in SeqIO.parse(seqhandle, format='fasta')])
 
@@ -207,14 +217,14 @@ def oligoset_design():
 
             # import ipdb; ipdb.set_trace()
 
-            jobrec = Job(jobid=job.id, jobname=form.jobname.data)
+            jobrec = Job(jobid=job.id, jobname=jobname, numbertotal=len(seqdict))
             current_user.jobs.append(jobrec)
             db.session.add(current_user)
             db.session.commit()
 
             flash('Your job was submitted %s' % job.id)
 
-            return redirect(url_for('oligoset_results'))
+            return redirect(url_for('benchtop'))
 
     g.active_page = 'oligoset_design'
     return render_template('oligoset_design.html', form=form)
@@ -223,12 +233,6 @@ def oligoset_design():
 @app.route('/results', methods=['GET'])
 @login_required
 def oligoset_results():
-
-    for job in current_user.jobs:
-        if datetime.datetime.now() - job.created > datetime.timedelta(days=1):
-            current_user.jobs.remove(job)
-    db.session.add(current_user)
-    db.session.commit()
 
     jobid = request.args.get('jobid')
     if jobid is not None:
