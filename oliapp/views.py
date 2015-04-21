@@ -111,16 +111,18 @@ def benchtop():
 
     for job in current_user.jobs:
         if datetime.datetime.now() - job.created > datetime.timedelta(seconds=CELERY_TASK_RESULT_EXPIRES):
-            current_user.jobs.remove(job)
-    db.session.add(current_user)
-    db.session.commit()
+            db.session.delete(job)
+            db.session.commit()
 
     oligoset_list = [o.id for o in current_user.benchtop_oligosets]
 
-    query = Oligoset.query.join(Target)
-    query = query.filter(Oligoset.id.in_(oligoset_list))
+    if len(oligoset_list) > 0:
+        query = Oligoset.query.join(Target)
+        query = query.filter(Oligoset.id.in_(oligoset_list))
+        g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
+    else:
+        g.onbench = []
 
-    g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
     g.myexperiments = current_user.experiments
 
     g.active_page = 'benchtop'
@@ -234,14 +236,14 @@ def oligoset_design():
 @login_required
 def oligoset_results():
 
-    jobid = request.args.get('jobid')
-    if jobid is not None:
-        job = tasks.enqueue_5primer_set.AsyncResult(jobid)
-        if job.ready():
-            g.results = iternamedtuples(job.get()[0])
-            g.explain = iternamedtuples(job.get()[1])
-
+    job = Job.query.get_or_404(request.args.get('jobid'))
+    if job is not None:
+        redisjob = tasks.enqueue_5primer_set.AsyncResult(job.jobid)
+        if redisjob.ready():
+            results = redisjob.get()
+            g.results = iternamedtuples(results[0])
+            g.explain = iternamedtuples(results[1])
 
     g.active_page = 'oligoset_results'
-    return render_template('oligoset_results.html')
+    return render_template('oligoset_results.html', jobname=job.jobname)
 

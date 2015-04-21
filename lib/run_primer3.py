@@ -80,6 +80,9 @@ def taqman_primers(seqid, seq, p3settings):
     if innerdf is not None:
         innerdf['variable'] = 'TAQMAN_' + innerdf['variable'].astype(str)
 
+    if innerexp is not None:
+        innerexp['ptype'] = 'TAQMAN_' + innerexp['ptype'].astype(str)
+
     return innerdf, innerexp
 
 
@@ -101,7 +104,11 @@ def preamp_primers(seqid, seq, p3settings, p3coords):
     if outerdf is not None:
         outerdf['variable'] = 'PREAMP_' + outerdf['variable'].astype(str)
 
+    if outerdf is not None:
+        outerexp['ptype'] = 'PREAMP_' + outerexp['ptype'].astype(str)
+
     return outerdf, outerexp
+
 
 def make_5primer_set(seqs, settings1, settings2):
 
@@ -127,8 +134,6 @@ def make_5primer_set(seqs, settings1, settings2):
                 log.info('%s: Found %d OUTER primers sets' % (seqid, outerdf.pid.nunique()))
                 outerprimerlist.append(outerdf)
 
-#
-
             else:
                 log.info('%s: Failed to find OUTER primers; try relaxing requirements.' % seqid)
 
@@ -138,16 +143,23 @@ def make_5primer_set(seqs, settings1, settings2):
     # try:
     innerprimerdf = pd.concat(innerprimerlist)
     innerprimerdf = innerprimerdf.pivot(index='pid', columns='variable', values='value')
-
     outerprimerdf = pd.concat(outerprimerlist)
     outerprimerdf = outerprimerdf.pivot(index='pid', columns='variable', values='value')
     outerprimerdf['pidkey'] = outerprimerdf.index.to_series().replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
-
     primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='pidkey', suffixes=('_inner','_outer'))
+
+    innerexplaindf = pd.concat(innerexplainlist)
+    outerexplaindf = pd.concat(outerexplainlist)
+    outerexplaindf['seqid'].replace(to_replace=r'(.+)____[0-9]+', value=r'\1', inplace=True, regex=True)
+
+    explaindf = pd.concat([innerexplaindf, outerexplaindf])
+    explaindf['value'] = explaindf['value'].astype(int)
+    explaindf = explaindf.groupby(['seqid','ptype','variable'], as_index=False)['value'].sum().\
+        sort(['seqid','ptype','value'], ascending=[True, True, False])
 
     # import ipdb; ipdb.set_trace()
 
-    return primerdf, None
+    return primerdf, explaindf
 
 
 # primerdf.columns.values

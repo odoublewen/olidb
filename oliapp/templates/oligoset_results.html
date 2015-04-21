@@ -4,45 +4,115 @@
 {% block title %}Design New Oligos{% endblock %}
 
 {% block content %}
-<h1>Design New Oligos</h1>
+    <h1>Job Results: {{ jobname }}</h1>
 
     <div class="row-fluid">
 
         <div class="col-md-12">
 
 
-            <h3>Job Results</h3>
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#results" data-toggle="tab" aria-expanded="true">Acceptable Candidates</a></li>
+                <li class=""><a href="#explain" data-toggle="tab" aria-expanded="false">Reasons for Rejections</a></li>
+            </ul>
 
-            {% if g.results %}
-               <table class="table table-striped table-bordered">
-                <thead><tr>
-                    <th>id</th>
-                    <th>penalty</th>
-                    <th>TMF</th>
-                    <th>TMP</th>
-                    <th>TMR</th>
-                </tr></thead>
+            <div id="myTabContent" class="tab-content">
+                <div class="tab-pane active in" id="results">
 
-            {% for i in g.results %}
-                <tr>
-                    <td>{{ i.pidkey }}</td>
-                    <td>{{ i.TAQMAN_PAIR_PENALTY }}</td>
-{#                    <td>{{ i.PREAMP_PAIR_PENALTY }}</td>#}
-{#                    <td>{{ i.PREAMP_LEFT_SEQUENCE }}</td>#}
-{#                    <td>{{ i.PREAMP_RIGHT_SEQUENCE }}</td>#}
-                    <td>{{ i.TAQMAN_LEFT_SEQUENCE }}</td>
-                    <td>{{ i.TAQMAN_INTERNAL_SEQUENCE }}</td>
-                    <td>{{ i.TAQMAN_RIGHT_SEQUENCE }}</td>
+                    {% if g.results %}
+                        <table class="table table-striped table-bordered">
+                            <thead><tr>
+                                <th>id</th>
+                                <th>penalty</th>
+                                <th>TMF</th>
+                                <th>TMP</th>
+                                <th>TMR</th>
+                            </tr></thead>
 
-{#                    <td>{{ i.TAQMAN_RIGHT_COORDS }}</td>#}
-                </tr>
-            {% endfor %}
-           </table>
-        {% else %}
-            <p>Could not find job results.  (Results are stored for 24 hours.)</p>
-            <p>You can submit a new job on the <a href="{{ url_for("oligoset_design") }}">design</a> page.</p>
-        {% endif %}
+                            {% for i in g.results %}
+                                <tr>
+                                    <td>{{ i.pidkey }}</td>
+                                    <td>{{ i.TAQMAN_PAIR_PENALTY }}</td>
+                                    <td>{{ i.TAQMAN_LEFT_SEQUENCE }}</td>
+                                    <td>{{ i.TAQMAN_INTERNAL_SEQUENCE }}</td>
+                                    <td>{{ i.TAQMAN_RIGHT_SEQUENCE }}</td>
+
+
+
+
+{## array(['TAQMAN_INTERNAL_COORDS', 'TAQMAN_INTERNAL_GC_PERCENT',#}
+{##        'TAQMAN_INTERNAL_HAIRPIN_TH', 'TAQMAN_INTERNAL_PENALTY',#}
+{##        'TAQMAN_INTERNAL_SELF_ANY_TH', 'TAQMAN_INTERNAL_SELF_END_TH',#}
+{##        'TAQMAN_INTERNAL_SEQUENCE', 'TAQMAN_INTERNAL_TM',#}
+{##        'TAQMAN_LEFT_COORDS', 'TAQMAN_LEFT_END_STABILITY',#}
+{##        'TAQMAN_LEFT_GC_PERCENT', 'TAQMAN_LEFT_HAIRPIN_TH',#}
+{##        'TAQMAN_LEFT_PENALTY', 'TAQMAN_LEFT_SELF_ANY_TH',#}
+{##        'TAQMAN_LEFT_SELF_END_TH', 'TAQMAN_LEFT_SEQUENCE', 'TAQMAN_LEFT_TM',#}
+{##        'TAQMAN_PAIR_COMPL_ANY_TH', 'TAQMAN_PAIR_COMPL_END_TH',#}
+{##        'TAQMAN_PAIR_PENALTY', 'TAQMAN_PAIR_PRODUCT_SIZE',#}
+{##        'TAQMAN_RIGHT_COORDS', 'TAQMAN_RIGHT_END_STABILITY',#}
+{##        'TAQMAN_RIGHT_GC_PERCENT', 'TAQMAN_RIGHT_HAIRPIN_TH',#}
+{##        'TAQMAN_RIGHT_PENALTY', 'TAQMAN_RIGHT_SELF_ANY_TH',#}
+{##        'TAQMAN_RIGHT_SELF_END_TH', 'TAQMAN_RIGHT_SEQUENCE',#}
+{##        'TAQMAN_RIGHT_TM', 'PREAMP_LEFT_COORDS',#}
+{##        'PREAMP_LEFT_END_STABILITY', 'PREAMP_LEFT_GC_PERCENT',#}
+{##        'PREAMP_LEFT_HAIRPIN_TH', 'PREAMP_LEFT_PENALTY',#}
+{##        'PREAMP_LEFT_SELF_ANY_TH', 'PREAMP_LEFT_SELF_END_TH',#}
+{##        'PREAMP_LEFT_SEQUENCE', 'PREAMP_LEFT_TM',#}
+{##        'PREAMP_PAIR_COMPL_ANY_TH', 'PREAMP_PAIR_COMPL_END_TH',#}
+{##        'PREAMP_PAIR_PENALTY', 'PREAMP_PAIR_PRODUCT_SIZE',#}
+{##        'PREAMP_RIGHT_COORDS', 'PREAMP_RIGHT_END_STABILITY',#}
+{##        'PREAMP_RIGHT_GC_PERCENT', 'PREAMP_RIGHT_HAIRPIN_TH',#}
+{##        'PREAMP_RIGHT_PENALTY', 'PREAMP_RIGHT_SELF_ANY_TH',#}
+{##        'PREAMP_RIGHT_SELF_END_TH', 'PREAMP_RIGHT_SEQUENCE',#}
+{##        'PREAMP_RIGHT_TM', 'pidkey'], dtype=object)#}
+
+
+
+
+
+
+
+
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <h3>No oligo results found</h3>
+                        <p>Could not find job results.  (Results are stored for 24 hours.)</p>
+                        <p>You can submit a new job on the <a href="{{ url_for("oligoset_design") }}">design</a> page.</p>
+                    {% endif %}
+
+                </div>
+
+
+
+                <div class="tab-pane" id="explain">
+                    {% if g.explain %}
+                        <table class="table table-striped table-bordered">
+                            <thead><tr>
+                                <th>seq</th>
+                                <th>oligo</th>
+                                <th>explanation</th>
+                                <th>count</th>
+                            </tr></thead>
+
+                            {% for i in g.explain %}
+                                <tr>
+                                    <td>{{ i.seqid }}</td>
+                                    <td>{{ i.ptype }}</td>
+                                    <td>{{ i.variable }}</td>
+                                    <td>{{ i.value }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <h3>No explanation results found</h3>
+                        <p>Could not find explaination results.  (Results are stored for 24 hours.)</p>
+                        <p>You can submit a new job on the <a href="{{ url_for("oligoset_design") }}">design</a> page.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-
-
+    </div>
 {% endblock %}

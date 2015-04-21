@@ -107,7 +107,7 @@
 
             {% for j in current_user.jobs %}
             <tr>
-                <td><a href="{{ url_for('oligoset_results', jobid=j.jobid) }}">{{ j.jobname }}</a></td>
+                <td><a href="{{ url_for('oligoset_results', jobid=j.id) }}">{{ j.jobname }}</a></td>
                 <td>{{ j.created }}</td>
                 <td>{{ j.numberdone }}/{{ j.numbertotal }}</td>
             </tr>
