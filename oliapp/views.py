@@ -14,6 +14,7 @@ import pandas as pd
 from oliapp import db, tasks, redis
 import datetime
 from oliapp.config import CELERY_TASK_RESULT_EXPIRES
+from datatables import DataTable
 
 def iternamedtuples(df):
     Row = namedtuple('Row', df.columns)
@@ -240,10 +241,25 @@ def oligoset_results():
     if job is not None:
         redisjob = tasks.enqueue_5primer_set.AsyncResult(job.jobid)
         if redisjob.ready():
-            results = redisjob.get()
-            g.results = iternamedtuples(results[0])
-            g.explain = iternamedtuples(results[1])
+            redisresults = redisjob.get()
+            # g.results = iternamedtuples(results[0])
+            # g.explain = iternamedtuples(results[1])
+
+            g.results = redisresults[0].to_json(orient='records')
+            g.explain = redisresults[1].to_json(orient='records')
+
+            # table = DataTable(request.GET, User, User.query, [
+            #     "id",
+            #     ("name", "full_name", lambda i: "User: {}".format(i.full_name)),
+            #     ("address", "address.description"),
+            # ])
+            # table.add_data(link=lambda o: request.route_url("view_user", id=o.id))
+            #
+            # return table.json()
+
 
     g.active_page = 'oligoset_results'
     return render_template('oligoset_results.html', jobname=job.jobname)
+
+
 

@@ -140,22 +140,28 @@ def make_5primer_set(seqs, settings1, settings2):
         else:
             log.info('%s: Failed to find INNER primers; try relaxing requirements.' % seqid)
 
-    # try:
-    innerprimerdf = pd.concat(innerprimerlist)
-    innerprimerdf = innerprimerdf.pivot(index='pid', columns='variable', values='value')
-    outerprimerdf = pd.concat(outerprimerlist)
-    outerprimerdf = outerprimerdf.pivot(index='pid', columns='variable', values='value')
-    outerprimerdf['pidkey'] = outerprimerdf.index.to_series().replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
-    primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='pidkey', suffixes=('_inner','_outer'))
+    try:
+        innerprimerdf = pd.concat(innerprimerlist)
+        innerprimerdf = innerprimerdf.pivot(index='pid', columns='variable', values='value')
+        outerprimerdf = pd.concat(outerprimerlist)
+        outerprimerdf = outerprimerdf.pivot(index='pid', columns='variable', values='value')
+        outerprimerdf['pidkey'] = outerprimerdf.index.to_series().replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
+        primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='pidkey', suffixes=('_inner','_outer'))
+    except ValueError:
+        primerdf = None
 
     innerexplaindf = pd.concat(innerexplainlist)
-    outerexplaindf = pd.concat(outerexplainlist)
-    outerexplaindf['seqid'].replace(to_replace=r'(.+)____[0-9]+', value=r'\1', inplace=True, regex=True)
+    if outerexplainlist is not None:
+        outerexplaindf = pd.concat(outerexplainlist)
+        outerexplaindf['seqid'].replace(to_replace=r'(.+)____[0-9]+', value=r'\1', inplace=True, regex=True)
+        explaindf = pd.concat([innerexplaindf, outerexplaindf])
+    else:
+        explaindf = innerexplaindf
 
-    explaindf = pd.concat([innerexplaindf, outerexplaindf])
     explaindf['value'] = explaindf['value'].astype(int)
-    explaindf = explaindf.groupby(['seqid','ptype','variable'], as_index=False)['value'].sum().\
-        sort(['seqid','ptype','value'], ascending=[True, True, False])
+    explaindf = explaindf.groupby(['seqid', 'ptype', 'variable'], as_index=False)['value'].sum().\
+        sort(['seqid', 'ptype', 'value'], ascending=[True, True, False])
+
 
     # import ipdb; ipdb.set_trace()
 

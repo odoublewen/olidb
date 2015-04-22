@@ -28,7 +28,6 @@
     <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
     {% block head %}{% endblock %}
     {% block css %}{% endblock %}
-    {% block js %}{% endblock %}
 </head>
 
 <body>
@@ -97,6 +96,8 @@
         </div>
     </div>
 </div>
+
+{% block js %}{% endblock %}
 
 </body>
 </html>
