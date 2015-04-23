@@ -31,16 +31,16 @@ celeryapp = make_celery(app)
 from oliapp import views, models
 
 
+user_datastore = SQLAlchemyUserDatastore(db, models.OliUser, models.Role)
+
 # class ExtendedRegisterForm(ConfirmRegisterForm):
 #     name = StringField('First Name')
+# security = Security(app, user_datastore, confirm_register_form=ExtendedRegisterForm)
 
 class ExtendedRegisterForm(RegisterForm):
     name = StringField('First Name')
-
-
-user_datastore = SQLAlchemyUserDatastore(db, models.OliUser, models.Role)
-# security = Security(app, user_datastore, confirm_register_form=ExtendedRegisterForm)
 security = Security(app, user_datastore, register_form=ExtendedRegisterForm)
+
 
 mail = Mail(app)
 flask_sijax.Sijax(app)

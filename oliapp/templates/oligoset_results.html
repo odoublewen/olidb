@@ -35,34 +35,24 @@
 
                     {% if g.results %}
 
-                        <table id="example" class="display" cellspacing="0" width="100%">
+                        <table id="oligoresults" class="display" cellspacing="0" width="100%">
                             <thead>
                             <tr>
                                 <th></th>
-                                <th>Name</th>
-                                <th>Position</th>
-                                <th>Office</th>
-                                <th>Salary</th>
+                                <th>PID</th>
+                                <th>Penalty</th>
+                                <th>RT.penalty</th>
+                                <th>TM.penalty</th>
                             </tr>
                             </thead>
-
-                            <tfoot>
-                            <tr>
-                                <th></th>
-                                <th>Name</th>
-                                <th>Position</th>
-                                <th>Office</th>
-                                <th>Salary</th>
-                            </tr>
-                            </tfoot>
                         </table>
 
 
 {#                        <table class="table table-striped table-bordered">#}
 {#                            <thead><tr>#}
 {#                                <th>id</th>#}
-{#                                <th>penalty</th>#}
-{#                                <th>TMF</th>#}
+{#                                <th>P.penalty</th>#}
+{#                                <th>T.penalty</th>#}
 {#                                <th>TMP</th>#}
 {#                                <th>TMR</th>#}
 {#                            </tr></thead>#}
@@ -87,22 +77,22 @@
 
                 <div class="tab-pane" id="explain">
                     {% if g.explain %}
-{#                        <table class="table table-striped table-bordered">#}
-{#                            <thead><tr>#}
-{#                                <th>seq</th>#}
-{#                                <th>oligo</th>#}
-{#                                <th>explanation</th>#}
-{#                                <th>count</th>#}
-{#                            </tr></thead>#}
-{#                            {% for i in g.explain %}#}
-{#                                <tr>#}
-{#                                    <td>{{ i.seqid }}</td>#}
-{#                                    <td>{{ i.ptype }}</td>#}
-{#                                    <td>{{ i.variable }}</td>#}
-{#                                    <td>{{ i.value }}</td>#}
-{#                                </tr>#}
-{#                            {% endfor %}#}
-{#                        </table>#}
+                        <table class="table table-striped table-bordered">
+                            <thead><tr>
+                                <th>seq</th>
+                                <th>oligo</th>
+                                <th>explanation</th>
+                                <th>count</th>
+                            </tr></thead>
+                            {% for i in g.explain %}
+                                <tr>
+                                    <td>{{ i.seqid }}</td>
+                                    <td>{{ i.ptype }}</td>
+                                    <td>{{ i.variable }}</td>
+                                    <td>{{ i.value }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
                     {% else %}
                         <h3>No explanation results found</h3>
                         <p>Could not find explaination results.  (Results are stored for 24 hours.)</p>
@@ -123,24 +113,19 @@
     function format ( d ) {
         // `d` is the original data object for the row
         return '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">'+
-                '<tr>'+
-                '<td>Full name:</td>'+
-                '<td>'+d.TAQMAN_RIGHT_SEQUENCE+'</td>'+
-                '</tr>'+
-                '<tr>'+
-                '<td>Extension number:</td>'+
-                '<td>'+d.extn+'</td>'+
-                '</tr>'+
-                '<tr>'+
-                '<td>Extra info:</td>'+
-                '<td>And any further details here (images etc)...</td>'+
-                '</tr>'+
+                '<tr><td>RTF</td><td>'+d.PREAMP_LEFT_SEQUENCE+'</td></tr>'+
+                '<tr><td>RTR</td><td>'+d.PREAMP_RIGHT_SEQUENCE+'</td></tr>'+
+                '<tr><td>TMF</td><td>'+d.TAQMAN_LEFT_SEQUENCE+'</td></tr>'+
+                '<tr><td>TMP</td><td>'+d.TAQMAN_INTERNAL_SEQUENCE+'</td></tr>'+
+                '<tr><td>TMR</td><td>'+d.TAQMAN_RIGHT_SEQUENCE+'</td></tr>'+
                 '</table>';
     }
 
     $(document).ready(function() {
-        var table = $('#example').DataTable( {
-            "ajax": "{{ g.results }}",
+        var table = $('#oligoresults').DataTable( {
+            "data": {{ g.results | safe }},
+            "bFilter": false,
+            "bLengthChange": false,
             "columns": [
                 {
                     "className":      'details-control',
@@ -148,16 +133,16 @@
                     "data":           null,
                     "defaultContent": ''
                 },
-                { "data": "name" },
-                { "data": "position" },
-                { "data": "office" },
-                { "data": "salary" }
+                { "data": "outerkey" },
+                { "data": "OVERALL_PENALTY" },
+                { "data": "PREAMP_PAIR_PENALTY" },
+                { "data": "TAQMAN_PAIR_PENALTY" },
             ],
-            "order": [[1, 'asc']]
+            "order": [[2, 'asc']]
         } );
 
         // Add event listener for opening and closing details
-        $('#example tbody').on('click', 'td.details-control', function () {
+        $('#oligoresults tbody').on('click', 'td.details-control', function () {
             var tr = $(this).closest('tr');
             var row = table.row( tr );
 

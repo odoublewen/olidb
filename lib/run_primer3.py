@@ -145,8 +145,19 @@ def make_5primer_set(seqs, settings1, settings2):
         innerprimerdf = innerprimerdf.pivot(index='pid', columns='variable', values='value')
         outerprimerdf = pd.concat(outerprimerlist)
         outerprimerdf = outerprimerdf.pivot(index='pid', columns='variable', values='value')
-        outerprimerdf['pidkey'] = outerprimerdf.index.to_series().replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
-        primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='pidkey', suffixes=('_inner','_outer'))
+        outerprimerdf['outerkey'] = outerprimerdf.index.to_series()
+        outerprimerdf['innerkey'] = outerprimerdf['outerkey'].replace(to_replace=r'(.+____[0-9]+)____[0-9]+', value=r'\1', inplace=False, regex=True)
+        primerdf = pd.merge(left=innerprimerdf, right=outerprimerdf, left_index=True, right_on='innerkey', suffixes=('_inner','_outer'))
+        # convert any column possible into int, or float, or else leave as is...
+        for c in list(primerdf.columns.values):
+            try:
+                primerdf[c] = primerdf[c].astype(int)
+            except ValueError:
+                try:
+                    primerdf[c] = primerdf[c].astype(float)
+                except ValueError:
+                    pass
+        primerdf['OVERALL_PENALTY'] = primerdf['PREAMP_PAIR_PENALTY'] + primerdf['TAQMAN_PAIR_PENALTY']
     except ValueError:
         primerdf = None
 
