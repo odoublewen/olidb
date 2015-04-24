@@ -5,7 +5,7 @@ from oliapp import db
 from oliapp.models import Target, Oligoset, Oligo, Experiment
 import sys
 from sqlalchemy import func, select, update
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 def loadgenes():
     genes = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/genes.csv')
@@ -63,7 +63,10 @@ def loadoligos():
 
         print '\t%s' % row.OLIGO
 
-        tm = check_output(['oligotm','-tp','1','-sc','1',row.SEQUENCE]).strip()
+        try:
+            tm = check_output(['oligotm','-tp','1','-sc','1',row.SEQUENCE]).strip()
+        except CalledProcessError:
+            tm = None
 
         o = Oligo()
 
