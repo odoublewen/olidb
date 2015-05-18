@@ -3,6 +3,7 @@
 import argparse
 import logging
 from Bio import SeqIO
+from StringIO import StringIO
 from subprocess import Popen, PIPE
 from re import match, search
 import pandas as pd
@@ -10,6 +11,12 @@ import sys
 import pdb
 
 log = logging.getLogger(__name__)
+
+# BOWTIE2INDEXES = [('Ensembl_GRCh37', '/raid/genomes/Homo_sapiens/Ensembl/GRCh37/Sequence/Bowtie2Index/genes'),
+#                   ('NCBI_GRCh37.2', '/raid/genomes/Homo_sapiens/NCBI/build37.2/Sequence/Bowtie2Index/genes')]
+
+BOWTIE2INDEXES = [('Ensembl_GRCh37', '/opt/bowtie2_indexes/ensembl/genes'),
+                  ('NCBI_GRCh37.2', '/opt/bowtie2_indexes/ncbi/genes')]
 
 
 def run_primer3(primer3_in):
@@ -175,6 +182,39 @@ def make_5primer_set(seqs, settings1, settings2):
 
 
     # import ipdb; ipdb.set_trace()
+
+    print primerdf.columns.values
+    primerfasta = ''
+    for i, row in primerdf.iterrows():
+        for ptype in ['TAQMAN_LEFT_SEQUENCE', 'TAQMAN_INTERNAL_SEQUENCE', 'TAQMAN_RIGHT_SEQUENCE',
+                      'PREAMP_LEFT_SEQUENCE', 'PREAMP_RIGHT_SEQUENCE']:
+            primerfasta += '>%s____%s\n' % (row['outerkey'], ptype)
+            primerfasta += '%s\n' % (row[ptype])
+
+    for indexname, indexpath in BOWTIE2INDEXES:
+        bowtie_params = ['bowtie',
+                         '-f',                     # fasta input
+                         '-v', '1',                # mismatches allowed
+                         '-a',                     # return _all_ matches
+                         '-S', '--sam-nohead',     # sam output
+                         indexpath, '-'            # index and stdin
+                         ]
+
+        p = Popen(bowtie_params, stdin=PIPE, stdout=PIPE, bufsize=1)
+        hitdf = pd.io.parsers.read_table(StringIO(p.communicate(input=primerfasta)[0]),
+                                         header=None,
+                                         usecols=[0, 1, 2, 12],
+                                         names=['query', 'flag', 'subject', 'align']
+                                         )
+        hitdf = hitdf[hitdf['flag'] != 4]
+
+        hitdf['outerkey'] = hitdf['query'].replace(to_replace=r'(.+____[0-9]+____[0-9]+)____(.+)', value=r'\1', inplace=False, regex=True)
+        hitdf['ptype'] = hitdf['query'].replace(to_replace=r'(.+____[0-9]+____[0-9]+)____(.+)', value=r'\2', inplace=False, regex=True)
+
+        hitdf = pd.pivot_table(hitdf, index=['outerkey', 'subject'], columns='ptype', values='flag')
+
+        print hitdf
+
 
     return primerdf, explaindf
 

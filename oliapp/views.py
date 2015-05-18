@@ -1,5 +1,5 @@
 from oliapp import app
-from oliapp.models import Oligoset, Target, Experiment, OliUser, Job, search_oligosets
+from oliapp.models import Oligoset, Target, Experiment, OliUser, Job, Recipe, search_oligosets
 from oliapp.forms import ExperimentForm, SequenceForm
 from sqlalchemy import and_, or_, desc
 from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash, make_response, url_for, redirect
@@ -45,6 +45,11 @@ class SijaxHandler(object):
     def query_benchtop(obj_response, ids, action='toggle'):
         for id in ids:
             SijaxHandler.oligoset_benchtop(obj_response, id, action=action)
+
+    @staticmethod
+    def design_recipe(obj_response, id):
+        recipename = Recipe.query.get(int(id)).recipename
+        obj_response.alert(recipename)
 
 
 @app.template_filter('isodate')
@@ -196,11 +201,16 @@ def site_search():
     return render_template('site_search.html')
 
 
-@app.route('/design', methods=['GET', 'POST'])
+@flask_sijax.route(app, '/design')  #methods=['GET', 'POST']
 @login_required
 def oligoset_design():
 
+    if g.sijax.is_sijax_request:
+        g.sijax.register_object(SijaxHandler)
+        return g.sijax.process_request()
+
     form = SequenceForm(request.form)
+    g.recipes = Recipe.query.filter(or_(Recipe.oliuser_id == None, Recipe.oliuser_id == current_user.id))
 
     if request.method == 'POST':
         if form.validate():

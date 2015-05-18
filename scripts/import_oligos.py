@@ -2,13 +2,16 @@
 
 import pandas as pd
 from oliapp import db
-from oliapp.models import Target, Oligoset, Oligo, Experiment
+from oliapp.models import Target, Oligoset, Oligo, Experiment, Recipe
 import sys
 from sqlalchemy import func, select, update
 from subprocess import check_output, CalledProcessError
+import os
+
+BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def loadgenes():
-    genes = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/genes.csv')
+    genes = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genes.csv'))
     genes = genes.sort(['TAXONOMY', 'GENENAME'])
 
     for i, row in genes.iterrows():
@@ -43,7 +46,7 @@ def loadgenes():
 
 
 def loadoligos():
-    oligos = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/oligos.csv', na_filter=False)
+    oligos = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'oligos.csv'), na_filter=False)
 
     oligos = oligos.sort(['TAXONOMY', 'ID'])
     oligos['ORDERDATEDATE'] = pd.to_datetime(oligos.ORDERDATE)
@@ -97,10 +100,10 @@ def updateoligosetdate():
 
 
 def loadgenesets():
-    genesets = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/genesets.csv', na_filter=False)
+    genesets = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genesets.csv'), na_filter=False)
     genesets['DATEDATE'] = pd.to_datetime(genesets.GS_DATE)
 
-    genesets_data = pd.io.parsers.read_csv('/vagrant/scripts/fixturedata/genesets_data.csv')
+    genesets_data = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genesets_data.csv'))
 
     for i, gs in genesets.iterrows():
         ex = Experiment()
@@ -121,6 +124,25 @@ def loadgenesets():
     db.session.commit()
 
 
+def loadrecipes():
+    recipefiles = [['auto', 'primer3_config_inner_auto.txt', 'primer3_config_outer_auto.txt'],
+                   ['strict', 'primer3_config_inner_strict.txt', 'primer3_config_outer_strict.txt'],
+                   ['relaxed', 'primer3_config_inner_relaxed.txt', 'primer3_config_outer_relaxed.txt']]
+
+    for recipename, innerfile, outerfile in recipefiles:
+        innerdata = open(os.path.join(BASE_PATH, 'fixturedata', innerfile)).readlines()
+        outerdata = open(os.path.join(BASE_PATH, 'fixturedata', outerfile)).readlines()
+
+        innerdata = ''.join([l for l in innerdata if l[:7] == 'PRIMER_'])
+        outerdata = ''.join([l for l in outerdata if l[:7] == 'PRIMER_'])
+
+        r = Recipe(recipename=recipename, inner_recipe=innerdata, outer_recipe=outerdata)
+
+        db.session.add(r)
+
+    db.session.commit()
+
+
 if sys.argv[1] == 'genes':
     loadgenes()
 
@@ -133,9 +155,13 @@ if sys.argv[1] == 'dates':
 if sys.argv[1] == 'genesets':
     loadgenesets()
 
+if sys.argv[1] == 'recipes':
+    loadrecipes()
+
 if sys.argv[1] == 'all':
     loadgenes()
     loadoligos()
     updateoligosetdate()
     loadgenesets()
+    loadrecipes()
 

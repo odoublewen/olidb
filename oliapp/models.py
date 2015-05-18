@@ -174,10 +174,13 @@ class OliUser(db.Model, UserMixin):
     benchtop_oligosets = db.relationship('Oligoset', secondary=benchtop_oligoset)
     experiments = db.relationship('Experiment', backref='oliuser')
     jobs = db.relationship('Job', backref='oliuser')
+    recipes = db.relationship('Recipe', backref='oliuser')
 
 
-class Primer3Settings(db.Model):
-    __tablename__ = 'primer3settings'
+class Recipe(db.Model):
+    __tablename__ = 'recipe'
     id = db.Column(db.Integer, primary_key=True)
-    settings = db.Column(db.Text)
-    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'))
+    recipename = db.Column(db.String(255), unique=False, nullable=False)
+    inner_recipe = db.Column(db.Text, nullable=False)
+    outer_recipe = db.Column(db.Text, nullable=False)
+    oliuser_id = db.Column(db.Integer, db.ForeignKey('oliuser.id'), nullable=True)

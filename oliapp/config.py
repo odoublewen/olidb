@@ -26,3 +26,5 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 CELERY_TASK_RESULT_EXPIRES = 86400
 CELERY_TRACK_STARTED = True
+
+

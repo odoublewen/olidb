@@ -26,9 +26,20 @@
         </div>
     </div>
 
+    <div class="row" style="margin-top: 20px">
+        <div class="col-md-8">
+            The following settings control how Primer3 picks the internal Taqman oligos (TMF, TMP, TMR) and the flanking
+            pre-amp oligos (RTF, RTR).  Detailed information is available in the <a href="{{ url_for('static', filename='primer3_manual.htm') }}">Primer3 manual</a>.
+        </div>
+
+        <div class="col-md-4">
+        <select label="taxa" id="recipe" name="recipe" class="form-control" onchange="Sijax.request('design_recipe', [1]);">
+            {% for r in g.recipes %}<option value="{{ r.id }}">{{ r.recipename }}</option>{% endfor %}
+        </select>
+        </div>
+    </div>
+
     <div class="row">
-            <br><br><p>The following settings control how Primer3 picks the internal Taqman oligos (TMF, TMP, TMR) and the flanking
-            pre-amp oligos (RTF, RTR).  Detailed information is available in the <a href="{{ url_for('static', filename='primer3_manual.htm') }}">Primer3 manual</a>.</p>
         <div class="col-md-6">
             <br>{{ render_field(form.primer3_config_taqman, class="form-control", rows=30, with_label=True) }}
         </div>
