@@ -10,6 +10,7 @@ from lib.run_primer3 import make_5primer_set
 from Bio import SeqIO
 import cStringIO
 from collections import namedtuple
+from flask import Markup
 import pandas as pd
 from oliapp import db, tasks
 import datetime
@@ -47,10 +48,10 @@ class SijaxHandler(object):
             SijaxHandler.oligoset_benchtop(obj_response, id, action=action)
 
     @staticmethod
-    def design_recipe(obj_response, id):
-        recipename = Recipe.query.get(int(id)).recipename
-        obj_response.alert(recipename)
-
+    def design_recipe(obj_response, recipeid):
+        recipe = Recipe.query.get(recipeid)
+        obj_response.script("$('#primer3_config_taqman').html(\"" + recipe.inner_recipe.encode('unicode_escape') + "\")")
+        obj_response.script("$('#primer3_config_preamp').html(\"" + recipe.outer_recipe.encode('unicode_escape') + "\")")
 
 @app.template_filter('isodate')
 def _jinja2_filter_datetime(date, fmt=None):

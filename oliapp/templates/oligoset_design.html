@@ -33,9 +33,13 @@
         </div>
 
         <div class="col-md-4">
-        <select label="taxa" id="recipe" name="recipe" class="form-control" onchange="Sijax.request('design_recipe', [1]);">
-            {% for r in g.recipes %}<option value="{{ r.id }}">{{ r.recipename }}</option>{% endfor %}
-        </select>
+
+        {% for r in g.recipes %}
+            <label class="radio-inline">
+                <input type="radio" name="recipe" id="recipe" value="{{ r.id }}">{{r.recipename}}
+            </label>
+        {% endfor %}
+
         </div>
     </div>
 
@@ -50,4 +54,14 @@
 
     </form>
 
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+$(document).ready(function () {
+    $("input[name=recipe]:radio").change(function () {
+        Sijax.request('design_recipe', [this.value]);
+    })
+});
+    </script>
 {% endblock %}
