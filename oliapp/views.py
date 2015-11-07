@@ -50,8 +50,8 @@ class SijaxHandler(object):
     @staticmethod
     def design_recipe(obj_response, recipeid):
         recipe = Recipe.query.get(recipeid)
-        obj_response.script("$('#primer3_config_taqman').html(\"" + recipe.inner_recipe.encode('unicode_escape') + "\")")
-        obj_response.script("$('#primer3_config_preamp').html(\"" + recipe.outer_recipe.encode('unicode_escape') + "\")")
+        obj_response.script("$('#primer3_config_taqman').val(\"" + recipe.inner_recipe.encode('unicode_escape') + "\")")
+        obj_response.script("$('#primer3_config_preamp').val(\"" + recipe.outer_recipe.encode('unicode_escape') + "\")")
 
 @app.template_filter('isodate')
 def _jinja2_filter_datetime(date, fmt=None):
