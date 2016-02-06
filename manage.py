@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-from oliapp import app, db
-from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand
+import os
+import sys
 
-migrate = Migrate(app, db)
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "olidb.settings")
 
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
+    from django.core.management import execute_from_command_line
 
-
-
-if __name__ == '__main__':
-    manager.run()
-
+    execute_from_command_line(sys.argv)

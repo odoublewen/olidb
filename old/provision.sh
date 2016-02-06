@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 apt-get update
-apt-get install -y git postgresql-9.3 postgresql-server-dev-9.3 libcurl4-openssl-dev primer3 rabbitmq-server bowtie2 unzip ncurses-dev
+apt-get install -y git postgresql-9.3 postgresql-server-dev-9.3 ipython python-pip python-dev libcurl4-openssl-dev primer3 redis-server bowtie2 unzip #python-tk
 apt-get install -y emacs24-nox byobu htop
 #apt-get install -y build-essential
 
@@ -18,16 +18,7 @@ sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" /etc/postgre
 su - postgres -c 'createuser -s vagrant'
 su - vagrant -c 'createdb olidb'
 
-cd ~
-wget -q https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz
-tar xf Python-3.5.1.tar.xz
-cd Python-3.5.1
-./configure --prefix=/usr/local
-make && make altinstall
-cd /usr/local/bin
-ln -s python3.5 pip3.5 .
-pip3 install --upgrade pip
-pip3 install -r /vagrant/requirements_freeze.txt
+pip install -r /vagrant/requirements.txt
 
 cd ~
 wget -q http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.2/bowtie-1.1.2-linux-x86_64.zip
