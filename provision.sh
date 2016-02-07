@@ -20,11 +20,11 @@ su - vagrant -c 'createdb olidb'
 pip install -r /vagrant/requirements.txt
 
 cd ~
-wget -q http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.1/bowtie-1.1.1-linux-x86_64.zip
-unzip bowtie-1.1.1-linux-x86_64.zip
-rm bowtie-1.1.1-linux-x86_64.zip
-mv bowtie-1.1.1 /opt
-echo PATH=/opt/bowtie-1.1.1:$PATH >> /etc/profile
+wget -q http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.2/bowtie-1.1.2-linux-x86_64.zip
+unzip bowtie-1.1.2-linux-x86_64.zip
+rm bowtie-1.1.2-linux-x86_64.zip
+mv bowtie-1.1.2 /opt
+echo PATH=/opt/bowtie-1.1.2:$PATH >> /etc/profile
 
 wget -q https://dl.dropboxusercontent.com/u/24849204/bowtie2_indexes.tar.gz
 tar xf bowtie2_indexes.tar.gz
