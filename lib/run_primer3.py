@@ -165,8 +165,9 @@ def make_5primer_set(seqs, settings1, settings2):
                 except ValueError:
                     pass
         primerdf['OVERALL_PENALTY'] = primerdf['PREAMP_PAIR_PENALTY'] + primerdf['TAQMAN_PAIR_PENALTY']
-    except ValueError:
-        primerdf = None
+    except ValueError, e:
+        log.error(e)
+        raise RuntimeError('Problem parsing primer 3 output!')
 
     innerexplaindf = pd.concat(innerexplainlist)
     if outerexplainlist is not None:
@@ -180,8 +181,6 @@ def make_5primer_set(seqs, settings1, settings2):
     explaindf = explaindf.groupby(['seqid', 'ptype', 'variable'], as_index=False)['value'].sum().\
         sort(['seqid', 'ptype', 'value'], ascending=[True, True, False])
 
-
-    # import ipdb; ipdb.set_trace()
 
     print primerdf.columns.values
     primerfasta = ''
@@ -201,7 +200,12 @@ def make_5primer_set(seqs, settings1, settings2):
                          ]
 
         p = Popen(bowtie_params, stdin=PIPE, stdout=PIPE, bufsize=1)
-        hitdf = pd.io.parsers.read_table(StringIO(p.communicate(input=primerfasta)[0]),
+        stdout, stderr = p.communicate(input=primerfasta)
+        if stderr is not None:
+            log.error(stderr)
+            raise RuntimeError('Could not complete Bowtie mapping of primer sequences.')
+
+        hitdf = pd.io.parsers.read_table(StringIO(stdout),
                                          header=None,
                                          usecols=[0, 1, 2, 12],
                                          names=['query', 'flag', 'subject', 'align']
