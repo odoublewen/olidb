@@ -34,6 +34,7 @@ wget -q http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.2/bowtie-
 unzip bowtie-1.1.2-linux-x86_64.zip
 rm bowtie-1.1.2-linux-x86_64.zip
 mv bowtie-1.1.2 /opt
+
 echo PATH=/opt/bowtie-1.1.2:$PATH >> /etc/profile
 
 wget -q https://dl.dropboxusercontent.com/u/24849204/bowtie2_indexes.tar.gz
@@ -45,7 +46,8 @@ mv bowtie2_indexes /opt
 # adding these commands to the bash history just for convenience
 su - vagrant -c "echo './scripts/reinitialize_database.sh
 ./manage.py runserver --host 0.0.0.0 --reload --debug
-PYTHONPATH=/vagrant ./scripts/import_oligos.py all
+PYTHONPATH=/vagrant
+./scripts/import_oligos.py all
 celery -A oliapp.celeryapp worker
 ' > /home/vagrant/.bash_history"
 

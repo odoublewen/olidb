@@ -3,7 +3,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 WTF_CSRF_ENABLED = True
 SECRET_KEY = '9CA7C618-005E-4553-9DCF-C38D14CACB71'
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://localhost/olidb'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://localhost/oliapp'
 
 SECURITY_PASSWORD_HASH = 'sha512_crypt'
 SECURITY_PASSWORD_SALT = '57f544b8-be11-11e4-ae1d-3c15c2d09704'

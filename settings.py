@@ -50,7 +50,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'olidb.urls'
+ROOT_URLCONF = 'oliapp.urls'
 
 TEMPLATES = [
     {
@@ -68,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'olidb.wsgi.application'
+WSGI_APPLICATION = 'oliapp.wsgi.application'
 
 
 # Database
