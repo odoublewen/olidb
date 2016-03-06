@@ -1,34 +1,41 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+import os
+import django
 import pandas as pd
-from oliapp import db
-from oliapp.models import Target, Oligoset, Oligo, Experiment, Recipe
 import sys
-from sqlalchemy import func, select, update
+import pytz
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db.models import Min
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "common.settings")
+django.setup()
+
+from oliapp.models import Gene, Oligoset, Oligo, Experiment, Recipe
+from common.settings import BASE_DIR
+
 from subprocess import check_output, CalledProcessError
 import os
 
-BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def loadgenes():
-    genes = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genes.csv'))
-    genes = genes.sort(['TAXONOMY', 'GENENAME'])
+    genes = pd.read_csv(os.path.join(BASE_DIR, 'oliapp', 'fixtures', 'genes.csv'))
+    genes = genes.sort_values(by=['TAXONOMY', 'GENENAME'])
 
     for i, row in genes.iterrows():
-        t = db.session.query(Target).filter_by(symbol=row.GENENAME)
-        if t.count() == 0:
-            print '%s [%d]' % (row.GENENAME, i)
-            t = Target()
-            t.taxonomy = row.TAXONOMY
-            t.symbol = row.GENENAME
-            t.namelong = row.GENENAMELONG
-            t.namealts = row.GENENAMEALTS
-        elif t.count() == 1:
-            t = t.one()
-        else:
+        try:
+            g = Gene.objects.get(symbol=row.GENENAME)
+        except ObjectDoesNotExist:
+            print('%s [%d]' % (row.GENENAME, i))
+            g = Gene()
+            g.taxonomy = row.TAXONOMY
+            g.symbol = row.GENENAME
+            g.namelong = row.GENENAMELONG
+            g.namealts = row.GENENAMEALTS
+            g.save()
+        except MultipleObjectsReturned:
             raise RuntimeError('More than one record matching %s' % row.GENENAME)
 
-        print '\t%s' % row.TUBENAME
+        print('\t%s' % row.TUBENAME)
 
         d = Oligoset()
         d.tmid = row.TMID
@@ -37,16 +44,12 @@ def loadgenes():
         d.location = row.LOCATION
         d.is_obsolete = row.STATUS == 1
         d.is_public = row.G_PUBLIC == 1
-
-        t.oligosets.append(d)
-
-        db.session.add(t)
-
-    db.session.commit()
+        d.gene = g
+        d.save()
 
 
 def loadoligos():
-    oligos = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'oligos.csv'), na_filter=False)
+    oligos = pd.read_csv(os.path.join(BASE_DIR, 'oliapp', 'fixtures', 'oligos.csv'), na_filter=False)
 
     oligos = oligos.sort(['TAXONOMY', 'ID'])
     oligos['ORDERDATEDATE'] = pd.to_datetime(oligos.ORDERDATE)
@@ -55,16 +58,15 @@ def loadoligos():
     for i, row in oligos.iterrows():
         if row.TUBENAME != last_tubename:
             last_tubename = row.TUBENAME
-            d = db.session.query(Oligoset).filter_by(name=row.TUBENAME)
-            if d.count() == 0:
-                print 'WARNING NOT FOUND %s [%d]' % (row.TUBENAME, i)
-            elif d.count() == 1:
-                d = d.one()
-                print '%s' % row.TUBENAME
-            else:
+            try:
+                d = Oligoset.objects.get(name=row.TUBENAME)
+                print('%s' % row.TUBENAME)
+            except ObjectDoesNotExist:
+                raise RuntimeError('WARNING NOT FOUND %s' % row.TUBENAME, i)
+            except MultipleObjectsReturned:
                 raise RuntimeError('More than one record matching %s' % row.TUBENAME)
 
-        print '\t%s' % row.OLIGO
+        print('\t%s' % row.OLIGO)
 
         try:
             tm = check_output(['oligotm','-tp','1','-sc','1',row.SEQUENCE]).strip()
@@ -81,47 +83,40 @@ def loadoligos():
         o.tm = tm
 
         if not pd.isnull(row.ORDERDATEDATE):
-            o.orderdate = row.ORDERDATEDATE
+            o.orderdate = pytz.utc.localize(row.ORDERDATEDATE)
 
-        d.oligos.append(o)
-
-        db.session.add(d)
-
-    db.session.commit()
+        o.oligoset = d
+        o.save()
 
 
 def updateoligosetdate():
-    for r in Oligoset.query.all():
-        newdate = db.session.query(func.min(Oligo.orderdate)).filter(Oligo.oligoset_id==r.id).one()
-        print r.id, r.date, newdate
+    for r in Oligoset.objects.all():
+        newdate = Oligo.objects.filter(oligoset=r).aggregate(Min('orderdate'))['orderdate__min']
+        print(r.id, r.date, newdate)
         r.date = newdate
-    db.session.commit()
-
+        r.save()
 
 
 def loadgenesets():
-    genesets = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genesets.csv'), na_filter=False)
+    genesets = pd.read_csv(os.path.join(BASE_DIR, 'oliapp', 'fixtures', 'genesets.csv'), na_filter=False)
     genesets['DATEDATE'] = pd.to_datetime(genesets.GS_DATE)
 
-    genesets_data = pd.io.parsers.read_csv(os.path.join(BASE_PATH, 'fixturedata', 'genesets_data.csv'))
+    genesets_data = pd.read_csv(os.path.join(BASE_DIR, 'oliapp', 'fixtures', 'genesets_data.csv'))
 
     for i, gs in genesets.iterrows():
         ex = Experiment()
         ex.name = gs.GS_ID
         ex.description = ' / '.join([x for x in [gs.FOLDER, gs.GS_NAME] if x != ''])
-        ex.date = gs.GS_DATE
+        ex.date = pytz.utc.localize(gs.DATEDATE)
         ex.is_public = True
-        print "%s\t%d" % (gs.GS_NAME, i)
+        print("%s\t%d" % (gs.GS_NAME, i))
+        ex.save()
 
         # subset genesets_data
         for j, d in genesets_data.ix[genesets_data.GS_ID == gs.GS_ID].iterrows():
-            child = db.session.query(Oligoset).filter_by(name=d.TUBENAME).one()
-            ex.oligosets.append(child)
-            print '\t%s\t%d' % (child.name, j)
-
-        db.session.add(ex)
-
-    db.session.commit()
+            child = Oligoset.objects.get(name=d.TUBENAME)
+            ex.oligosets.add(child)
+            print('\t%s\t%d' % (child.name, j))
 
 
 def loadrecipes():
@@ -130,17 +125,14 @@ def loadrecipes():
                    ['relaxed', 'primer3_config_inner_relaxed.txt', 'primer3_config_outer_relaxed.txt']]
 
     for recipename, innerfile, outerfile in recipefiles:
-        innerdata = open(os.path.join(BASE_PATH, 'fixturedata', innerfile)).readlines()
-        outerdata = open(os.path.join(BASE_PATH, 'fixturedata', outerfile)).readlines()
+        innerdata = open(os.path.join(BASE_DIR, 'oliapp', 'fixtures', innerfile)).readlines()
+        outerdata = open(os.path.join(BASE_DIR, 'oliapp', 'fixtures', outerfile)).readlines()
 
         innerdata = ''.join([l for l in innerdata if l[:7] == 'PRIMER_'])
         outerdata = ''.join([l for l in outerdata if l[:7] == 'PRIMER_'])
 
         r = Recipe(recipename=recipename, inner_recipe=innerdata, outer_recipe=outerdata)
-
-        db.session.add(r)
-
-    db.session.commit()
+        r.save()
 
 
 if sys.argv[1] == 'genes':

@@ -1,20 +1,20 @@
-from oliapp import app
-from oliapp.models import Oligoset, Target, Experiment, OliUser, Job, Recipe, search_oligosets
-from oliapp.forms import ExperimentForm, SequenceForm
-from sqlalchemy import and_, or_, desc
-from flask import request, send_from_directory, render_template, g, abort, jsonify, session, flash, make_response, url_for, redirect
-from flask.ext.security import login_required, current_user
-import flask_sijax
-from sqlalchemy.orm.exc import NoResultFound
-from lib.run_primer3 import make_5primer_set
-from Bio import SeqIO
-import cStringIO
-from collections import namedtuple
-from flask import Markup
-import pandas as pd
-from oliapp import db, tasks
 import datetime
+from collections import namedtuple
+
+import cStringIO
+import flask_sijax
+from Bio import SeqIO
+from flask import request, render_template, g, abort, flash, url_for, redirect
+from flask.ext.security import login_required, current_user
 from oliapp.config import CELERY_TASK_RESULT_EXPIRES
+from oliapp.forms import ExperimentForm, SequenceForm
+from sqlalchemy import or_, desc
+from sqlalchemy.orm.exc import NoResultFound
+
+from oliapp import app
+from oliapp import db, tasks
+from oliapp.models import Oligoset, Gene, Experiment, OliUser, Job, Recipe, search_oligosets
+
 
 def iternamedtuples(df):
     Row = namedtuple('Row', df.columns)
@@ -71,14 +71,14 @@ def _mask_sequence(seq, is_public):
 @app.route('/index/')
 def index():
     g.recentexp = Experiment.query.filter(Experiment.date != None).order_by(desc(Experiment.date)).limit(10)
-    g.recentoli = Oligoset.query.join(Target).filter(Oligoset.date != None).order_by(desc(Oligoset.date)).limit(10)
+    g.recentoli = Oligoset.query.join(Gene).filter(Oligoset.date != None).order_by(desc(Oligoset.date)).limit(10)
     return render_template("index.html", title='Hello world home')
 
 @app.route('/oligosets/detail/<taxatmid>')
 def oligoset_detail(taxatmid):
     try:
         taxa, tmid = taxatmid.split('-')
-        g.oligoset = Oligoset.query.join(Target).filter(Target.taxonomy == taxa).filter(Oligoset.tmid == int(tmid)).one()
+        g.oligoset = Oligoset.query.join(Gene).filter(Gene.taxonomy == taxa).filter(Oligoset.tmid == int(tmid)).one()
     except NoResultFound:
         abort(404)
     except ValueError:
@@ -123,9 +123,9 @@ def benchtop():
     oligoset_list = [o.id for o in current_user.benchtop_oligosets]
 
     if len(oligoset_list) > 0:
-        query = Oligoset.query.join(Target)
+        query = Oligoset.query.join(Gene)
         query = query.filter(Oligoset.id.in_(oligoset_list))
-        g.onbench = query.order_by(Target.taxonomy, Oligoset.name).all()
+        g.onbench = query.order_by(Gene.taxonomy, Oligoset.name).all()
     else:
         g.onbench = []
 
@@ -147,7 +147,7 @@ def oligoset_browse(page):
     g.term = request.args.get('term')
     g.taxonomy = request.args.get('taxonomy')
 
-    query = Oligoset.query.join(Target)
+    query = Oligoset.query.join(Gene)
 
     if g.experiment_num:
         experiment = Experiment.query.get(g.experiment_num)
@@ -158,15 +158,15 @@ def oligoset_browse(page):
     if g.term:
         for term in g.term.split(' '):
             term = '%%%s%%' % term
-            query = query.filter(or_(Oligoset.name.ilike(term), Target.namelong.ilike(term)))
+            query = query.filter(or_(Oligoset.name.ilike(term), Gene.namelong.ilike(term)))
 
     if g.taxonomy:
-        query = query.filter(Target.taxonomy == g.taxonomy)
+        query = query.filter(Gene.taxonomy == g.taxonomy)
 
-    g.pagination = query.order_by(Target.taxonomy, Oligoset.name).paginate(page, per_page=100)
+    g.pagination = query.order_by(Gene.taxonomy, Oligoset.name).paginate(page, per_page=100)
     g.itemids = [i.id for i in g.pagination.items]
     g.active_page = 'oligoset_browse'
-    g.taxa = [q.taxa for q in db.session.query(Target.taxonomy.distinct().label("taxa")).order_by(Target.taxonomy).all()]
+    g.taxa = [q.taxa for q in db.session.query(Gene.taxonomy.distinct().label("taxa")).order_by(Gene.taxonomy).all()]
     return render_template('oligoset_browse.html')
 
 
