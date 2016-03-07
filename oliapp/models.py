@@ -74,6 +74,9 @@ class Oligoset(models.Model):
     def __repr__(self):
         return '<%s>' % self.name
 
+    def get_recent(n=10):
+        return Oligoset.objects.exclude(date__isnull=True).order_by('-date')[:n]
+
 
 class Oligo(models.Model):
     oligoset = models.ForeignKey(Oligoset)
@@ -102,6 +105,9 @@ class Experiment(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_recent(n=10):
+        return Experiment.objects.exclude(date__isnull=True).order_by('-date')[:n]
 
 
 class Job(models.Model):

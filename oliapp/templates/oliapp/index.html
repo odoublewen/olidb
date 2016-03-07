@@ -1,9 +1,9 @@
 {% extends "oliapp/base.html" %}
+{% load oliapp_extras %}
 {% block title %}Oli, the Oligo Database{% endblock %}
 
 {% block content %}
     <h1>Welcome to Oli, the Oligonucleotide Database</h1>
-
 
     <div class="row-fluid">
 
@@ -20,12 +20,12 @@
         </thead>
         <tbody>
 
-        {% for i in g.recentexp %}
+        {% for item in recentexp %}
             <tr>
-                <td><a href="{{ url_for('oligoset_browse', exp=i.id) }}">{{ i.id }}</a></td>
-                <td>{{ i.name }}</td>
-                <td>{{ i.oligosets|length }}</td>
-                <td><nobr>{{ i.date|isodate }}</nobr></td>
+                <td><a href="{% url 'details' item.id %}">{{ item.id }}</a></td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.oligosets.count }}</td>
+                <td><nobr>{{ item.date|date:'c' }}</nobr></td>
             </tr>
         {% endfor %}
         </tbody>
@@ -44,11 +44,12 @@
         </thead>
         <tbody>
 
-        {% for i in g.recentoli %}
+        {% for item in recentoli %}
+
             <tr>
-                <td><a href="{{ url_for('oligoset_detail', taxatmid=[i.target.taxonomy, i.tmid]|join('-')) }}"><nobr>{{ i.target.taxonomy}}-{{ i.tmid }}</nobr></a></td>
-                <td>{{ i.name }}</td>
-                <td><nobr>{{ i.date|isodate }}</nobr></td>
+                <td><a href="{{ item.gene.taxonomy|concat:"-"|concat:item.tmid }}"><nobr>{{ item.gene.taxonomy|concat:"-"|concat:item.tmid }}</nobr></a></td>
+                <td>{{ item.name }}</td>
+                <td><nobr>{{ item.date|date:'c' }}</nobr></td>
             </tr>
         {% endfor %}
         </tbody>

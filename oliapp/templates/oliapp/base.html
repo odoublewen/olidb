@@ -1,31 +1,26 @@
+{% load staticfiles %}
+
 <!doctype html>
 <html lang="en">
 
 <head>
     <title>{% block title %}{% endblock %}</title>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-
-            <div class="alert alert-dismissible alert-info">
-                <button type="button" class="close" data-dismiss="alert">×</button>
-                    {{ message }}
-            </div>
-
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+{% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+{% endfor %}
 
     {% block meta %}{% endblock %}
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/oli.css') }}" />
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.2.js') }}" ></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.cookie.js') }}" ></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/sijax/sijax.js') }}"></script>
-    <script type="text/javascript">{{ g.sijax.get_js()|safe }}</script>
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+
+    <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" media="screen">
+    <link rel="stylesheet" href="{% static "css/jquery.dataTables.min.css" %}" media="screen">
+
+    <link rel="stylesheet" href="{% static "css/oli.css" %}" media="screen">
+
+    <script type="text/javascript" src="{% static "js/jquery-1.12.1.min.js" %}" ></script>
+    <script type="text/javascript" src="{% static "js//bootstrap.min.js" %}" ></script>
+
     {% block head %}{% endblock %}
     {% block css %}{% endblock %}
 </head>
@@ -47,31 +42,31 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='img/favicon48.png') }}"></a>
+            <a class="navbar-brand" href="{% url 'index' %}"><img src="{% static 'images/favicon48.png' %}"></a>
         </div>
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 {% for page, caption in navigation_bar %}
-                    <li{% if g.active_page == page %} class="active"{% endif %}><a href="{{ url_for(page) }}">{{ caption }}</a></li>
+                    <li{% if g.active_page == page %} class="active"{% endif %}><a href="{% url page %}">{{ caption }}</a></li>
                 {% endfor %}
 
                 <li{% if g.active_page == 'benchtop' %} class="active"{% endif %}>
-                    <a href="{{ url_for('benchtop') }}">My Benchtop
-                        {% if current_user.is_authenticated() %}<span class="badge benchtop_size">{{ current_user.benchtop_oligosets | length }}</span>{% endif %}
+                    <a href="{% url 'benchtop' %}">My Benchtop
+                        {% if user.is_authenticated %}<span class="badge benchtop_size">{{ current_user.benchtop_oligosets | length }}</span>{% endif %}
                     </a>
                 </li>
 
-                {% if current_user.is_authenticated() %}
+                {% if user.is_authenticated %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ current_user.email }}<span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url_for('security.logout') }}">Logout</a></li>
+                                <li><a href="{% url 'logout' %}">Logout</a></li>
                             </ul>
                     </li>
                 {% else %}
                     <li>
-                        <a href="{{ url_for('security.login') }}">Login</a>
+                        <a href="{% url 'login' %}">Login</a>
                     </li>
                 {% endif %}
             </ul>
