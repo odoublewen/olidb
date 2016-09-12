@@ -22,10 +22,10 @@
 
         {% for item in recentexp %}
             <tr>
-                <td><a href="{% url 'details' item.id %}">{{ item.id }}</a></td>
+                <td><a href="{% url 'oligoset_details' item.id %}">{{ item.id }}</a></td>
                 <td>{{ item.name }}</td>
                 <td>{{ item.oligosets.count }}</td>
-                <td><nobr>{{ item.date|date:'c' }}</nobr></td>
+                <td><nobr>{% isodate item.date %}</nobr></td>
             </tr>
         {% endfor %}
         </tbody>
@@ -47,9 +47,10 @@
         {% for item in recentoli %}
 
             <tr>
-                <td><a href="{{ item.gene.taxonomy|concat:"-"|concat:item.tmid }}"><nobr>{{ item.gene.taxonomy|concat:"-"|concat:item.tmid }}</nobr></a></td>
+            {% concat item.gene.taxonomy '-' item.tmid as taxatmid%}
+                <td><a href="{% url 'oligoset_details' taxatmid=taxatmid %}"><nobr>{{ taxatmid }}</nobr></a></td>
                 <td>{{ item.name }}</td>
-                <td><nobr>{{ item.date|date:'c' }}</nobr></td>
+                <td><nobr>{% isodate item.date %}</nobr></td>
             </tr>
         {% endfor %}
         </tbody>

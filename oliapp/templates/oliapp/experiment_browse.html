@@ -1,5 +1,6 @@
 {% extends "oliapp/base.html" %}
-{% import "oliapp/_pagination.html" as pg %}
+{% load oliapp_extras %}
+
 {% block title %}Experiments{% endblock %}
 
 {% block content %}
@@ -10,11 +11,9 @@
     </div>
 
     <div id="filter-row" class="row-fluid">
-        <form id="filter-form" class="form form-inline" action="{{ url_for('experiment_browse') }}" method="get">
-        {{ pg.render_pagination() }}
-        <input id="search-term" placeholder="Search term(s)" name="term" type="text" onclick="this.select()" class="form-control" value="{{ g.term if g.term is defined and g.term is not none }}">
+        <form id="filter-form" class="form form-inline" action="{% url 'experiments' %}" method="get">
         <div class="checkbox">
-            <label><input {% if current_user.is_anonymous() %}disabled{% endif %} type="checkbox" name="mine" value="T" {% if g.mine == 'T' %}checked{% endif %}> Show only my experiments</label>
+            <label><input {% if user.is_anonymous %}disabled{% endif %} type="checkbox" name="mine" value="T" {% if g.mine == 'T' %}checked{% endif %}> Show only my experiments</label>
         </div>
         <button id="search-button" type="submit" class="btn btn-default">Filter</button>
         </form>
@@ -22,7 +21,7 @@
 
     <div class="row-fluid">
         <div class="span12">
-            <table class="table table-striped table-bordered">
+            <table class="table table-striped table-bordered display" id="maintable">
                 <thead>
                     <tr>
                         <th>id</th>
@@ -34,14 +33,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% for i in g.pagination.items %}
+                {% for i in items %}
                     <tr>
-                        <td><a href="{{ url_for('oligoset_browse', exp=i.id) }}">{{ i.id }}</a></td>
+                        <td><a href="{% url 'oligosets' %}?exp={{ i.id }}">{{ i.id }}</a></td>
                         <td>{{ i.name }}</td>
                         <td>{{ i.description }}</td>
                         <td>{{ i.oliuser.name }}</td>
-                        <td><nobr>{{ i.date | isodate }}</nobr></td>
-                        <td>{{ i.oligosets|length }}</td>
+                        <td><nobr>{% isodate i.date %}</nobr></td>
+                        <td>{{ i.oligosets.all|length }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -49,3 +48,12 @@
         </div>
     </div>
 {% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#maintable').DataTable();
+        } );
+    </script>
+{% endblock %}
+
