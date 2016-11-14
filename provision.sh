@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-apt update
-apt install -y git postgresql-9.5 postgresql-server-dev-9.5 libcurl4-openssl-dev python3-pip rabbitmq-server unzip ncurses-dev bowtie
-apt install -y emacs24-nox byobu htop primer3
+apt-get update
+apt-get install -y git postgresql postgresql-server-dev-all libcurl4-openssl-dev python3-pip rabbitmq-server unzip libncurses5-dev bowtie
+apt-get install -y emacs24-nox byobu htop primer3
+apt-get autoremove
 #apt-get install -y build-essential
 
 echo '# "local" is for Unix domain socket connections only

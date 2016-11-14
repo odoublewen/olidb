@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box = "ubuntu/trusty64"
   config.vm.provision :shell, path: "provision.sh"
 
   # Disable automatic box update checking. If you disable this, then
@@ -25,13 +25,10 @@ Vagrant.configure("2") do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "forwarded_port", guest: 8000, host: 8000
-  
+
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   # config.vm.network "private_network", ip: "192.168.33.10"
-
-  # Set the Timezone to something useful
-  # config.vm.provision :shell, :inline => "ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on

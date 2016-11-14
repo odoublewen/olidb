@@ -25,7 +25,7 @@ SECRET_KEY = 'n_sdpgf_2)#l+3ba$e!ed_0ktwp=9)ltvwk)-$gn0mc#im0$89'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
