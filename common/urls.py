@@ -15,8 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth.views import login
+from django.contrib.auth.views import logout
+from oliapp.views import add_user
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'', include('oliapp.urls')),
+    url(r'^accounts/login/?$', login, name='login'),
+    url(r'^accounts/logout/?$', logout, name='logout'),
+    url(r'^accounts/signup/?$', add_user, name='adduser'),
 ]

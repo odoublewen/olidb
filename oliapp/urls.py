@@ -19,13 +19,10 @@ from oliapp import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^oligosets/$', views.browse_oligosets, name='oligosets'),
-
-    url(r'^oligosets/detail/(?P<taxatmid>[a-z0-9/-]+)/$', views.index, name='oligoset_details'),
-    url(r'^benchtop/$', views.index, name='benchtop'),
+    url(r'^oligoset/(?P<taxatmid>[a-z0-9/-]+)/$', views.oligoset_details, name='oligoset_details'),
     url(r'^experiments/$', views.browse_experiments, name='experiments'),
-    url(r'^search/$', views.index, name='search'),
+
+    url(r'^benchtop/$', views.benchtop, name='benchtop'),
     url(r'^design/$', views.index, name='design'),
     url(r'^results/$', views.index, name='results'),
-    url(r'^login/$', views.index, name='login'),
-    url(r'^logout/$', views.index, name='logout'),
 ]

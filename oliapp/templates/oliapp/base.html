@@ -6,9 +6,9 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
 
-{% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-{% endfor %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
 
     {% block meta %}{% endblock %}
     <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
@@ -52,26 +52,23 @@
                     </a>
                 </li>
 
-                {% if user.is_authenticated %}
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ current_user.email }}<span class="caret"></span></a>
-                            <ul class="dropdown-menu" role="menu">
-                                <li><a href="{% url 'logout' %}">Logout</a></li>
-                            </ul>
-                    </li>
-                {% else %}
-                    <li>
-                        <a href="{% url 'login' %}">Login</a>
-                    </li>
-                {% endif %}
+            {% if user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ current_user.email }}<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'login' %}">Login</a>
+                </li>
+            {% endif %}
+
             </ul>
 
-{#            <form class="navbar-form navbar-right" role="search" action="{{ url_for('site_search') }}" method="get">#}
-{#                <div class="form-group">#}
-{#                    <input id="search-term" name="siteterm" type="text" onclick="this.select()" class="form-control" value="{{ g.siteterm }}">#}
-{#                </div>#}
-{#                <button id="search-button" type="submit" class="btn btn-default">Search</button>#}
-{#            </form>#}
+
+
         </div>
     </div>
 </nav>

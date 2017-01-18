@@ -9,8 +9,16 @@ def concat(*args):
 
 
 @register.simple_tag
-def isodate(date, fmt=None):
+def isodate(date, fmt='%Y-%m-%d'):
     try:
-        return date.strftime('%Y-%m-%d')
+        return date.strftime(fmt)
     except AttributeError:
         return ''
+
+
+@register.simple_tag(takes_context=True)
+def seqmask(context, seq, is_public):
+    if context.request.user.is_authenticated or is_public:
+        return seq
+    else:
+        return 'N' * len(seq)

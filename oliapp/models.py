@@ -30,18 +30,18 @@ class Accession(models.Model):
     annotation = models.ForeignKey(Annotation, null=True)
 
     status = models.CharField(max_length=64, null=True)
-    rna_acc = models.CharField(max_length=16, null=True)            # RNA_nucleotide_accession.version
-    rna_gi = models.IntegerField(null=True)              # RNA_nucleotide_gi
-    matpeptide_acc = models.CharField(max_length=16, null=True)     # mature_peptide_accession.version
-    matpeptide_gi = models.IntegerField(null=True)       # mature_peptide_gi
-    prot_acc = models.CharField(max_length=16, null=True)           # protein_accession.version
-    prot_gi = models.IntegerField(null=True)             # protein_gi
-    genome_acc = models.CharField(max_length=16, null=True)         # genomic_nucleotide_accession.version
-    genome_gi = models.IntegerField(null=True)           # genomic_nucleotide_gi
-    genome_start = models.IntegerField(null=True)        # start_position_on_the_genomic_accession
-    genome_end = models.IntegerField(null=True)          # end_position_on_the_genomic_accession
-    genome_orientation = models.NullBooleanField()  # orientation
-    genome_assembly = models.CharField(max_length=16, null=True)    # assembly
+    rna_acc = models.CharField(max_length=16, null=True)                # RNA_nucleotide_accession.version
+    rna_gi = models.IntegerField(null=True)                             # RNA_nucleotide_gi
+    matpeptide_acc = models.CharField(max_length=16, null=True)         # mature_peptide_accession.version
+    matpeptide_gi = models.IntegerField(null=True)                      # mature_peptide_gi
+    prot_acc = models.CharField(max_length=16, null=True)               # protein_accession.version
+    prot_gi = models.IntegerField(null=True)                            # protein_gi
+    genome_acc = models.CharField(max_length=16, null=True)             # genomic_nucleotide_accession.version
+    genome_gi = models.IntegerField(null=True)                          # genomic_nucleotide_gi
+    genome_start = models.IntegerField(null=True)                       # start_position_on_the_genomic_accession
+    genome_end = models.IntegerField(null=True)                         # end_position_on_the_genomic_accession
+    genome_orientation = models.NullBooleanField()                      # orientation
+    genome_assembly = models.CharField(max_length=16, null=True)        # assembly
 
     def __str__(self):
         return self.rna_acc

@@ -22,7 +22,7 @@
 
         {% for item in recentexp %}
             <tr>
-                <td><a href="{% url 'oligoset_details' item.id %}">{{ item.id }}</a></td>
+                <td><a href="{% url 'oligosets'%}?exp={{ item.id }}">{{ item.id }}</a></td>
                 <td>{{ item.name }}</td>
                 <td>{{ item.oligosets.count }}</td>
                 <td><nobr>{% isodate item.date %}</nobr></td>

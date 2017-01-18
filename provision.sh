@@ -24,8 +24,11 @@ pip3 install Cython
 pip3 install -r /vagrant/requirements.txt
 
 # adding these commands to the bash history just for convenience
-su - vagrant -c "echo './scripts/reinitialize_database.sh
-./manage.py runserver --host 0.0.0.0 --reload --debug
+su - vagrant -c "echo '/vagrant/resetdb.sh
+./manage.py makemigrations
+./manage.py migrate
+./manage.py loaddata /vagrant/oliapp/fixtures/fixtures.json
+./manage.py runserver 0.0.0.0:8000
 PYTHONPATH=/vagrant
 ./scripts/import_oligos.py all
 celery -A oliapp.celeryapp worker

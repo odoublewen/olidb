@@ -1,0 +1,37 @@
+{% extends "oliapp/base.html" %}
+{% load oliapp_extras %}
+
+{% block title %}{{ g.oligoset.name }}{% endblock %}
+{% block content %}
+    <h1>Oligoset {{ g.oligoset.name }} Details</h1>
+
+
+    <table class="table table-bordered table-condensed table-striped">
+    <tr><td>name</td><td>{{ item.name }}</td></tr>
+    <tr><td>id</td><td><nobr>{{ item.gene.taxonomy }}-{{ item.tmid }}</nobr></td></tr>
+    <tr><td>status</td><td>{% if item.is_public %}public (world viewable){% else %}private (viewable only by registered users){% endif %}</td></tr>
+    <tr><td>notes</td><td>{{ item.notes }}</td></tr>
+    <tr><td>design date</td><td>{% isodate item.date %}</td></tr>
+    <tr><td>target symbol</td><td>{{ item.gene.symbol }}</td></tr>
+    <tr><td>target description</td><td>{{ item.gene.namelong }}</td></tr>
+    <tr><td>target name alts</td><td>{{ item.gene.namealts }}</td></tr>
+    </table>
+
+    <h2>Oligo details</h2>
+    <table class="table table-bordered table-condensed table-striped", width=1000>
+    <tr>
+        <th>tubename</th>
+        <th>oligo id</th>
+        <th>sequence</th>
+        <th>order date</th>
+    </tr>
+    {% for o in item.oligo_set.all %}
+    <tr>
+        <td>{{ o.tubename }}</td>
+        <td>{{ o.oligoid }}</td>
+        <td>{% seqmask o.sequence item.is_public %}</td>
+        <td><nobr>{% isodate o.orderdate %}</nobr></td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}
