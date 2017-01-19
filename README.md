@@ -3,12 +3,14 @@
 Introduction
 ============
 
-OliDB is a Flask-based oligonucleotide database for labs to create and organize complex RT-PCR primers.
+OliDB is a Django-based oligonucleotide database for labs to create and organize complex RT-PCR primers.
+
+Deployment is provided via Docker and docker-compose.
 
 Setup
 =====
 
-Vagrant provisioning is complete, so assuming you have vagrant installed on your system, setting up a dev instance of OliDB should be as simple as:
+Assuming you have Docker installed on your system, setting up a dev instance of OliDB should be as simple as:
 
 1. git clone git@github.com:odoublewen/olidb.git
 2. cd olidb

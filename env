@@ -1,0 +1,5 @@
+DB_NAME=olidb_web
+DB_USER=olidb_web
+DB_PASS=Opah1aoN
+DB_SERVICE=postgres
+DB_PORT=5432

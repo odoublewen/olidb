@@ -1,0 +1,10 @@
+numpy
+biopython
+pysam
+pandas
+pytz
+gunicorn
+django
+celery
+django-celery
+psycopg2
