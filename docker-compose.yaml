@@ -10,17 +10,21 @@ services:
       - postgres:postgres
       - redis:redis
     env_file: env
+
+    # for production, remove the following volumes, ports and command definitions, and uncomment the gunicorn
     volumes:
       - ./web:/web
-    command: gunicorn common.wsgi:application -w 2 -b :8000
+    ports:
+      - "8080:8080"
+    command: ./manage.py runserver 0.0.0.0:8080
 
   nginx:
     restart: always
     build: ./nginx/
     ports:
       - "80:80"
-    volumes:
-      - ./static:/static
+    volumes_from:
+      - web
     links:
       - web:web
 
@@ -29,8 +33,8 @@ services:
     image: postgres:latest
     volumes:
       - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./backups/postgresql:/backup
       - data:/var/lib/postgresql
+#      - ./backups/postgresql:/backup
     env_file:
       - env
     expose:

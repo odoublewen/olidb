@@ -11,7 +11,8 @@ RUN pip3 install -r /requirements.txt
 RUN mkdir /web
 WORKDIR /web
 
+# for production server, uncomment these lines and remove the dev section from docker-compose file
 #COPY . /web/
-
+#CMD gunicorn common.wsgi:application -w 2 -b :8000
 
 
