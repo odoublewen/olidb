@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'oliapp.apps.OliappConfig',
+    'social_django',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -49,6 +50,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'social.apps.django_app.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'common.urls'
@@ -65,6 +67,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'oliapp.views.navbar_context_processor',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -126,6 +130,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# http://python-social-auth.readthedocs.io/en/latest/configuration/django.html
+AUTHENTICATION_BACKENDS = [
+    'social.backends.github.GithubOAuth2',
+    'social_core.backends.open_id.OpenIdAuth',
+    'social_core.backends.google.GoogleOpenId',
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.google.GoogleOAuth',
+    'social_core.backends.twitter.TwitterOAuth',
+    'social_core.backends.yahoo.YahooOpenId',
+]
+
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'home'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/

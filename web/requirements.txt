@@ -6,5 +6,6 @@ pytz
 gunicorn
 django
 celery
-django-celery
 psycopg2
+django-celery
+social-auth-app-django
